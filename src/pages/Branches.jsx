@@ -12,17 +12,18 @@ const Branches = () => {
     fetchSpot();
     fetchOrder();
   }, []);
-  const [selectedBranch, setSelectedBranch] = useState(spots[0]?.spot_id);
+  const [selectedBranch, setSelectedBranch] = useState(spots[0]);
 
   const fetchSpot = async () => {
-    const { data } = await axios.get("https://sushiserver.onrender.com/getSpot");
+    const { data } = await axios.get(
+      "https://sushiserver.onrender.com/getSpot"
+    );
     setSpots(data);
     setSelectedBranch(data[0]);
-    console.log(data  );
   };
 
   const fetchOrder = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       const { data } = await axios.get(
         `https://vm4983125.25ssd.had.wf:5000/get_spot/filter?spot_id=${
@@ -31,14 +32,21 @@ const Branches = () => {
           selectedProcess?.reqPath == undefined ? "" : selectedProcess?.reqPath
         }`
       );
-      console.log(data);
+      console.log(
+        `https://vm4983125.25ssd.had.wf:5000/get_spot/filter?spot_id=${
+          selectedBranch?.spot_id || 1
+        }&status=${
+          selectedProcess?.reqPath == undefined ? "" : selectedProcess?.reqPath
+        }`
+      );
       setOrders(data);
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
     } catch (e) {
-      setLoading(false)
-      setOrders([])
+      setLoading(false);
+      setOrders([]);
       console.log(e);
-    } finally {
-      setLoading(false)
     }
   };
 
@@ -93,6 +101,7 @@ const Branches = () => {
     );
   }
 
+  // console.log(spots);
   return (
     <main className="text-cText flex gap-3 grow mb-5">
       <div className="container grow w-1/2 flex flex-col">
@@ -102,10 +111,13 @@ const Branches = () => {
             {spots.map((item, idx) => (
               <li
                 key={idx}
-                onClick={() => setSelectedBranch(item.spot_id)}
+                onClick={() => {
+                  setSelectedBranch(item);
+                  console.log(item.spot_id);
+                }}
                 className={`cursor-pointer relative font-semibold px-4 py-1 text-primary`}
               >
-                {selectedBranch.spot_id === +item.spot_id && (
+                {+selectedBranch?.spot_id === +item.spot_id && (
                   <motion.div
                     layoutId="underline-1"
                     className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
