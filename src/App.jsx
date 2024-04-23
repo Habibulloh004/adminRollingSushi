@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
-import { Fragment, lazy, useEffect, useState } from "react";
+import { Fragment, lazy } from "react";
 import OrderItem from "./pages/OrderItem";
-import io from "socket.io-client";
+// import io from "socket.io-client";
 import { Toaster } from "react-hot-toast";
 const Orders = lazy(() => import("./pages/Orders"));
 const Layout = lazy(() => import("./Layout"));

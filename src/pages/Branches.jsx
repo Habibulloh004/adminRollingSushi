@@ -50,7 +50,6 @@ const Branches = () => {
     }
   };
 
-  const tableHead = ["Номер телефона", "Адрес Доставки", "Статус"];
 
   useEffect(() => {
     fetchOrder();
@@ -176,12 +175,10 @@ const Branches = () => {
             <table className="w-full text-center">
               <thead className="border-b-2">
                 <tr>
-                  <th></th>
-                  {tableHead.map((item) => (
-                    <th key={item} className="py-5">
-                      {item}
-                    </th>
-                  ))}
+                  <th className="w-[10%]"></th>
+                  <th className="py-5 w-[25%]">Номер телефона</th>
+                  <th className="py-5 w-[35%]">Адрес Доставки</th>
+                  <th className="py-5">Статус</th>
                 </tr>
               </thead>
               <tbody>
