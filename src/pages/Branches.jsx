@@ -15,7 +15,7 @@ const Branches = () => {
   const [selectedBranch, setSelectedBranch] = useState(spots[0]?.spot_id);
 
   const fetchSpot = async () => {
-    const { data } = await axios.get("http://localhost:8080/getSpot");
+    const { data } = await axios.get("https://sushiserver.onrender.com/getSpot");
     setSpots(data);
     setSelectedBranch(data[0]);
     console.log(data  );

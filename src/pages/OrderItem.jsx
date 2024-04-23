@@ -28,7 +28,7 @@ const OrderItem = () => {
 
   const fetchSpot = async () => {
     const { data } = await axios.get(
-      "http://localhost:8080/getSpot"
+      "https://sushiserver.onrender.com/getSpot"
     );
     setSpots(data);
   };
@@ -68,7 +68,7 @@ const OrderItem = () => {
       );
 
       const postPoster = await axios.post(
-        "http://localhost:8080/api/posttoposter",
+        "https://sushiserver.onrender.com/api/posttoposter",
         JSON.stringify(sendOrderPoster),
         {
           headers: {
