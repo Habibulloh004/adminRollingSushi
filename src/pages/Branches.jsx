@@ -18,6 +18,7 @@ const Branches = () => {
     const { data } = await axios.get("http://localhost:8080/getSpot");
     setSpots(data);
     setSelectedBranch(data[0]);
+    console.log(data  );
   };
 
   const fetchOrder = async () => {
@@ -30,9 +31,11 @@ const Branches = () => {
           selectedProcess?.reqPath == undefined ? "" : selectedProcess?.reqPath
         }`
       );
+      console.log(data);
       setOrders(data);
     } catch (e) {
       setLoading(false)
+      setOrders([])
       console.log(e);
     } finally {
       setLoading(false)
