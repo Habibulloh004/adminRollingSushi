@@ -35,9 +35,9 @@ function App() {
     <Fragment>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
+          <Route index element={<Orders />} />
           <Route path="orders" element={<Orders />} />
-          <Route path="orders/:id" element={<OrderItem />} />
+          <Route path=":id" element={<OrderItem />} />
           <Route path="branches" element={<Branches />} />
         </Route>
       </Routes>

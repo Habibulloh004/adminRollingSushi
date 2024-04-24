@@ -32,7 +32,7 @@ const OrderItem = () => {
 
   const fetchSpot = async () => {
     const { data } = await axios.get(
-      "https://sushiserver.onrender.com/getSpot"
+      "http:localhost:8080/getSpot"
     );
     setSpots(data);
   };
@@ -106,7 +106,7 @@ const OrderItem = () => {
       console.log("poster", postPoster);
       console.log("st", resStatus);
       console.log("sp", resSpot);
-      navigate("/orders");
+      navigate("/");
     } catch (e) {
       setLoading(false);
       console.log(e);

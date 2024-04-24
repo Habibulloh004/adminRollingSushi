@@ -21,7 +21,7 @@ const sideBarItems = [
     id: 1,
     icon: Orders,
     title: "Заказы",
-    path: "/orders",
+    path: "/",
   },
   {
     id: 2,
