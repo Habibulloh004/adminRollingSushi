@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { LeftArrow } from "../assets";
 import {
-  axiosInstance,
   f,
   formatPhoneNumber,
   formatPhoneNumber2,
@@ -14,6 +13,7 @@ import toast from "react-hot-toast";
 const OrderItem = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [parsedOrder, setParsedOrder] = useState([]);
   const [checkedItem, setCheckedItem] = useState(null);
   const [orderItem, setOrderItem] = useState(null);
   const [spots, setSpots] = useState([]);
@@ -22,8 +22,12 @@ const OrderItem = () => {
   const tableHead = ["Филиал"];
 
   const fetchData = async () => {
-    const res = await axiosInstance.get(`/get_order/${id}`);
-    setOrderItem(res.data);
+    await fetch(`https://vm4983125.25ssd.had.wf:5000/get_order/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setOrderItem(data);
+        console.log(data);
+      });
   };
 
   const fetchSpot = async () => {
@@ -32,10 +36,21 @@ const OrderItem = () => {
     );
     setSpots(data);
   };
+
   useEffect(() => {
     fetchData();
     fetchSpot();
   }, []);
+
+  useEffect(() => {
+    if (orderItem) {
+      const productsString = orderItem.products.replace(
+        /([{,])(\s*)([a-zA-Z0-9_]+?):/g,
+        '$1"$3":'
+      );
+      setParsedOrder(JSON.parse(productsString));
+    }
+  }, [orderItem]);
 
   const backBtn = () => {
     navigate(-1);
@@ -45,10 +60,19 @@ const OrderItem = () => {
   };
   const submit = async (e) => {
     e.preventDefault();
+    const productsString = orderItem.products.replace(
+      /([{,])(\s*)([a-zA-Z0-9_]+?):/g,
+      '$1"$3":'
+    );
+
+    const sendData = JSON.parse(productsString);
     const sendOrderPoster = {
-      spot_id: `${+checkedItem.spot_id}`,
-      products: orderItem.products,
-      phone: orderItem.phone
+      spot_id: checkedItem.spot_id,
+      products: sendData.map((item) => ({
+        ...item,
+        count: item.amount,
+      })),
+      phone: orderItem.phone,
     };
     try {
       setLoading(true);
@@ -152,7 +176,7 @@ const OrderItem = () => {
           </ol> */}
           <p className="my-6">
             <span className="text-lg font-semibold">Сумма заказа</span> -{" "}
-            {f(orderItem?.all_price)}
+            {f(orderItem?.all_price / 100)}
           </p>
           <Map position={orderItem.client_address} />
         </section>

@@ -74,6 +74,7 @@ const Branches = () => {
     }
   };
 
+  console.log(spots);
   if (!spots.length) {
     return (
       <div className="h-[500px] w-full justify-center flex items-center">

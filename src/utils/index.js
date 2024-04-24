@@ -13,7 +13,7 @@ export const axiosInstancePoster = axios.create({
     "Content-Type": "application/json",
   },
 });
-// export const API = "https://vm4983125.25ssd.had.wf:5000";
+// export const API = "        ";
 export const TOKEN = "967898:49355888e8e490af3bcca79c5e6b1abf";
 
 const sideBarItems = [
