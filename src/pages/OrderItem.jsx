@@ -73,6 +73,7 @@ const OrderItem = () => {
         count: item.amount,
       })),
       phone: orderItem.phone,
+      service_mode: 3,
     };
     try {
       setLoading(true);
