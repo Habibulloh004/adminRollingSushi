@@ -17,8 +17,6 @@ const Orders = () => {
     fetchData();
   }, []);
 
-  console.log(orders);
-
 
   useEffect(() => {
     setTimeout(() => {

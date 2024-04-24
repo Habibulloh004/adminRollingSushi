@@ -1,12 +1,11 @@
 import { Route, Routes } from "react-router-dom";
 import { Fragment, lazy } from "react";
 import OrderItem from "./pages/OrderItem";
-// import io from "socket.io-client";
+import Orders from "./pages/Orders";
+import Branches from "./pages/Branches";
+import Layout from "./Layout";
 import { Toaster } from "react-hot-toast";
-const Orders = lazy(() => import("./pages/Orders"));
-const Layout = lazy(() => import("./Layout"));
-const Home = lazy(() => import("./pages/Home"));
-const Branches = lazy(() => import("./pages/Branches"));
+// import io from "socket.io-client";
 
 function App() {
   // const [users, setUsers] = useState([]);
@@ -36,7 +35,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Orders />} />
-          <Route path="orders" element={<Orders />} />
           <Route path=":id" element={<OrderItem />} />
           <Route path="branches" element={<Branches />} />
         </Route>

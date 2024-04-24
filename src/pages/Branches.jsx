@@ -32,13 +32,6 @@ const Branches = () => {
           selectedProcess?.reqPath == undefined ? "" : selectedProcess?.reqPath
         }`
       );
-      console.log(
-        `https://vm4983125.25ssd.had.wf:5000/get_spot/filter?spot_id=${
-          selectedBranch?.spot_id || 1
-        }&status=${
-          selectedProcess?.reqPath == undefined ? "" : selectedProcess?.reqPath
-        }`
-      );
       setOrders(data);
       setTimeout(() => {
         setLoading(false);
