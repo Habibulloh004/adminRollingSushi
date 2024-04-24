@@ -87,7 +87,7 @@ const Orders = () => {
                   <td className="p-5">
                     <Link
                       className="w-full top-0 left-0 h-full absolute cursor-pointer z-10"
-                      to={`/orders/${item.id}`}
+                      to={`/${item.id}`}
                     ></Link>
                   </td>
                 </tr>
