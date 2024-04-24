@@ -1,11 +1,11 @@
 import { Route, Routes } from "react-router-dom";
 import { Fragment, lazy } from "react";
 import OrderItem from "./pages/OrderItem";
-import Orders from "./pages/Orders";
-import Branches from "./pages/Branches";
-import Layout from "./Layout";
-import { Toaster } from "react-hot-toast";
 // import io from "socket.io-client";
+import { Toaster } from "react-hot-toast";
+const Orders = lazy(() => import("./pages/Orders"));
+const Layout = lazy(() => import("./Layout"));
+const Branches = lazy(() => import("./pages/Branches"));
 
 function App() {
   // const [users, setUsers] = useState([]);
