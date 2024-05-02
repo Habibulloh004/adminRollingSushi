@@ -19,8 +19,7 @@ const Map = (prop) => {
       <div className="w-[100%] h-[350px]">
         <MapContainer
           center={[lat, lng]}
-          zoom={13}
-          scrollWheelZoom={false}
+          zoom={12}
           style={{ width: "100%", height: "100%" }}
         >
           <TileLayer
@@ -30,6 +29,26 @@ const Map = (prop) => {
           <Marker position={[lat, lng]} icon={icon}>
             <Popup>
               <h3>hello I'm client</h3>
+            </Popup>
+          </Marker>
+          <Marker position={[41.267193, 69.226858]} icon={icon}>
+            <Popup>
+              <h3>Yakkasaroy</h3>
+            </Popup>
+          </Marker>
+          <Marker position={[41.267193, 69.226858]} icon={icon}>
+            <Popup>
+              <h3>Yakkasaroy</h3>
+            </Popup>
+          </Marker>
+          <Marker position={[41.350852, 69.244140]} icon={icon}>
+            <Popup>
+              <h3>Olmazor</h3>
+            </Popup>
+          </Marker>
+          <Marker position={[41.318682, 69.339927]} icon={icon}>
+            <Popup>
+              <h3>Buyuk ipak yo'li</h3>
             </Popup>
           </Marker>
         </MapContainer>

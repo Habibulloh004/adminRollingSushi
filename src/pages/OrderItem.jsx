@@ -1,39 +1,36 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { LeftArrow } from "../assets";
-import {
-  f,
-  formatPhoneNumber,
-  formatPhoneNumber2,
-} from "../utils";
+import { f, formatPhoneNumber, formatPhoneNumber2 } from "../utils";
 import Map from "../components/Map";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { OpenStreetMapProvider } from "leaflet-geosearch";
 
 const OrderItem = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  // const { socketMe } = useSocketContext();
   const [parsedOrder, setParsedOrder] = useState([]);
   const [checkedItem, setCheckedItem] = useState(null);
   const [orderItem, setOrderItem] = useState(null);
-  const [spots, setSpots] = useState([]);
+  const [spots, setSpots] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [clientAdress, setClientAdress] = useState(null);
+  const [addressName, setAddressName] = useState("");
 
   const tableHead = ["Филиал"];
 
   const fetchData = async () => {
-    await fetch(`https://vm4983125.25ssd.had.wf:5000/get_order/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setOrderItem(data);
-        console.log(data);
-      });
+    const { data } = await axios.get(
+      `${import.meta.env.VITE_BACK}/get_order/${id}`
+    );
+    setClientAdress(data.client_address);
+    setOrderItem(data);
   };
 
   const fetchSpot = async () => {
-    const { data } = await axios.get(
-      "http:localhost:8080/getSpot"
-    );
+    const { data } = await axios.get(`${import.meta.env.VITE_API}/getSpot`);
     setSpots(data);
   };
 
@@ -52,8 +49,31 @@ const OrderItem = () => {
     }
   }, [orderItem]);
 
+  useEffect(() => {
+    if (clientAdress) {
+      let latitudeLongitude = clientAdress?.split(",");
+      let lat = parseFloat(latitudeLongitude[0]);
+      let lng = parseFloat(latitudeLongitude[1]);
+      const provider = new OpenStreetMapProvider();
+
+      const searchAddress = async () => {
+        try {
+          const results = await provider.search({ query: `${lat},${lng}` });
+          if (results.length) {
+            setAddressName(results[0].label);
+          }
+        } catch (error) {
+          console.error("Error searching address:", error);
+        }
+      };
+
+      searchAddress();
+    }
+  }, [clientAdress]);
+
   const backBtn = () => {
     navigate(-1);
+    // socketMe?.emit("stopped_process_order", orderItem?.id)
   };
   const headers = {
     "Content-Type": "application/json",
@@ -65,27 +85,49 @@ const OrderItem = () => {
       '$1"$3":'
     );
 
+    let latitudeLongitude = orderItem?.client_address?.split(",");
+    let lat = parseFloat(latitudeLongitude[0]);
+    let lng = parseFloat(latitudeLongitude[1]);
+    console.log(checkedItem);
+
     const sendData = JSON.parse(productsString);
     const sendOrderPoster = {
-      spot_id: checkedItem.spot_id,
+      spot_id: checkedItem?.spot_id,
+      // products: [
+      //   {
+      //     product_id: 3,
+      //     count: 1,
+      //   },
+      //   {
+      //     product_id: 5,
+      //     count: 1,
+      //   },
+      // ],
       products: sendData.map((item) => ({
-        ...item,
-        count: item.amount,
+        product_id: +item.product_id,
+        count: +item.amount,
       })),
+      delivery_price: 1000000,
       phone: orderItem.phone,
       service_mode: 3,
+      client_address: {
+        address1: addressName,
+        lat: `${lat}`,
+        lng: `${lng}`,
+      },
+      comment: orderItem?.id
     };
     try {
       setLoading(true);
       const resStatus = await axios.put(
-        `https://vm4983125.25ssd.had.wf:5000/update_order_status/${+id}`,
+        `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
         JSON.stringify({
           status: "accept",
         }),
         { headers }
       );
       const resSpot = await axios.put(
-        `https://vm4983125.25ssd.had.wf:5000/update_order_spot/${+id}`,
+        `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
         JSON.stringify({
           spot_id: `${+checkedItem.spot_id}`,
         }),
@@ -93,7 +135,7 @@ const OrderItem = () => {
       );
 
       const postPoster = await axios.post(
-        "https://sushiserver.onrender.com/api/posttoposter",
+        `${import.meta.env.VITE_API}/api/posttoposter`,
         JSON.stringify(sendOrderPoster),
         {
           headers: {
@@ -116,7 +158,7 @@ const OrderItem = () => {
     }
   };
 
-  if (!orderItem) {
+  if (!orderItem || !spots || !addressName) {
     return (
       <div className="h-[500px] w-full justify-center flex items-center">
         <div role="status">
@@ -164,6 +206,7 @@ const OrderItem = () => {
               ? formatPhoneNumber(orderItem.phone)
               : formatPhoneNumber2(orderItem.phone)}
           </p>
+          <p className="mt-3">{addressName ?? addressName}</p>
           {/* <p className="mt-3 font-semibold text-lg">Товары:</p> */}
           {/* <ol className="list-decimal my-2 mx-2">
             {orderItem?.products.map((prod, idx) => (
@@ -175,9 +218,9 @@ const OrderItem = () => {
               </li>
             ))}
           </ol> */}
-          <p className="my-6">
+          <p className="my-3">
             <span className="text-lg font-semibold">Сумма заказа</span> -{" "}
-            {f(orderItem?.all_price / 100)}
+            {f(orderItem?.all_price / 100)} сум
           </p>
           <Map position={orderItem.client_address} />
         </section>
@@ -208,7 +251,8 @@ const OrderItem = () => {
                       className="absolute top-0 left-0 w-[85%] h-full"
                     ></label>
                     <input
-                      type="checkbox"
+                      name="spots"
+                      type="radio"
                       id={item.id}
                       className="accent-primary w-4 h-4"
                       onChange={() => setCheckedItem(item)}

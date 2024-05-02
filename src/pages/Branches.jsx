@@ -16,7 +16,7 @@ const Branches = () => {
 
   const fetchSpot = async () => {
     const { data } = await axios.get(
-      "https://sushiserver.onrender.com/getSpot"
+      `${import.meta.env.VITE_API}/getSpot`
     );
     setSpots(data);
     setSelectedBranch(data[0]);
@@ -26,7 +26,7 @@ const Branches = () => {
     setLoading(true);
     try {
       const { data } = await axios.get(
-        `https://vm4983125.25ssd.had.wf:5000/get_spot/filter?spot_id=${
+        `${import.meta.env.VITE_BACK}/get_spot/filter?spot_id=${
           selectedBranch?.spot_id || 1
         }&status=${
           selectedProcess?.reqPath == undefined ? "" : selectedProcess?.reqPath
@@ -43,7 +43,6 @@ const Branches = () => {
     }
   };
 
-
   useEffect(() => {
     fetchOrder();
   }, [selectedBranch, selectedProcess]);
@@ -52,12 +51,12 @@ const Branches = () => {
     switch (status) {
       case "":
         return "Все заказы";
+      case "accept":
+        return "Ожидаемые";
       case "waiting":
         return "Ожидаемые";
-      case "accept":
-        return "Выполняемые";
       case "cooking":
-        return "Готовые";
+        return "Готовится";
       case "delivery":
         return "Доставляется";
       case "finished":
@@ -67,7 +66,6 @@ const Branches = () => {
     }
   };
 
-  console.log(spots);
   if (!spots.length) {
     return (
       <div className="h-[500px] w-full justify-center flex items-center">

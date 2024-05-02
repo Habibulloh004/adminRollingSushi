@@ -1,22 +1,18 @@
 import { Link } from "react-router-dom";
-import { formatPhoneNumber, formatPhoneNumber2 } from "../utils";
+import { axiosInstance, formatPhoneNumber, formatPhoneNumber2 } from "../utils";
 import { useEffect, useState } from "react";
 import { useSocketContext } from "../context/SocketContext";
-import axios from "axios";
-import toast from "react-hot-toast";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { socketMe } = useSocketContext();
+  const { socketMe, process, setProcess } = useSocketContext();
 
   const tableHead = ["Номер телефона", "Адрес Доставки"];
 
-  const [audio] = useState(new Audio("../../public/notification.mp3"));
-
   const fetchData = async () => {
-    const res = await axios.get(`${import.meta.env.VITE_BACK}/get_all_orders`);
-    setOrders(res?.data.filter((item) => item.status == ""));
+    const res = await axiosInstance.get(`/get_all_orders`);
+    setOrders(res.data.filter((item) => item.status == ""));
   };
 
   useEffect(() => {
@@ -24,20 +20,18 @@ const Orders = () => {
   }, []);
 
   useEffect(() => {
-    const handleNewOrder = (data) => {
-      console.log(data.orders);
-      setOrders((prev) => {
-        const alreadyExists = prev.includes(data.orders);
-        return !alreadyExists ? [...prev, data.orders] : prev;
-      });
-      toast.success("Новый заказ");
-    };
-
-    socketMe?.on("all_orders", handleNewOrder);
-
-    // Cleanup function: remove event listener on component unmount
-    return () => socketMe?.off("all_orders", handleNewOrder);
+    socketMe?.on("all_orders", (data) => {
+      console.log("orders", data);
+    });
+    socketMe?.on("processing_order_response", (data) => {
+      setProcess([...process, data]);
+    });
+    socketMe?.on("stopped_process_order_response", (data) => {
+      setProcess(process.filter((item) => item != data));
+    });
   }, [socketMe]);
+
+  console.log(process);
 
   useEffect(() => {
     setTimeout(() => {
@@ -85,35 +79,42 @@ const Orders = () => {
               </tr>
             </thead>
             <tbody>
-              {orders.map((item, idx) => (
-                <tr key={idx} className={`relative border-b-2`}>
-                  <td className="p-5">{idx + 1}</td>
-                  <td className="p-5">
-                    {item.phone.length > 11
-                      ? formatPhoneNumber(item.phone)
-                      : formatPhoneNumber2(item.phone)}
-                  </td>
-                  <td className="p-5">
-                    <p
-                      className="z-40 inline-block"
-                      // onClick={() => {
-                      //   addPointToMap(item.client_address), console.log(item);
-                      // }}
-                    >
-                      {item.client_address}
-                    </p>
-                  </td>
-                  <td className="p-5">
-                    <Link
-                      className="w-full top-0 left-0 h-full absolute cursor-pointer z-10"
-                      to={`/${item.id}`}
-                      onClick={() => {
-                        socketMe?.emit("processing_order", item.id);
-                      }}
-                    ></Link>
-                  </td>
-                </tr>
-              ))}
+              {orders.map((item, idx) => {
+                const disabled = process.length && process?.find((item) => item == item.id);
+                return (
+                  <tr key={idx} className={`relative border-b-2 ${
+                    disabled ? "bg-blue-300" : ""
+                  }`}>
+                    <td className="p-5">{idx + 1}</td>
+                    <td className="p-5">
+                      {item.phone.length > 11
+                        ? formatPhoneNumber(item.phone)
+                        : formatPhoneNumber2(item.phone)}
+                    </td>
+                    <td className="p-5">
+                      <p
+                        className="z-40 inline-block"
+                        // onClick={() => {
+                        //   addPointToMap(item.client_address), console.log(item);
+                        // }}
+                      >
+                        {item.client_address}
+                      </p>
+                    </td>
+                    <td className="p-5">
+                      <Link
+                        className={`w-full top-0 left-0 h-full absolute cursor-pointer ${
+                          disabled ? "-z-10" : "z-10"
+                        }`}
+                        to={`/${item.id}`}
+                        onClick={() => {
+                          socketMe?.emit("processing_order", item.id);
+                        }}
+                      ></Link>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}

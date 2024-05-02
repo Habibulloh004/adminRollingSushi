@@ -7,29 +7,8 @@ const Orders = lazy(() => import("./pages/Orders"));
 const Layout = lazy(() => import("./Layout"));
 const Branches = lazy(() => import("./pages/Branches"));
 
+
 function App() {
-  // const [users, setUsers] = useState([]);
-  // useEffect(() => {
-  //   const socket = io("https://vm4983125.25ssd.had.wf:5000"); // Replace with your server URL
-
-  //   socket.on("connect", () => {
-  //     console.log("Socket connected");
-  //   });
-
-  //   socket.on("onlineUsers", (data) => {
-  //     console.log(data);
-  //     setUsers(data);
-  //   });
-    
-  //   socket.on("disconnect", () => {
-  //     console.log("Socket disconnected");
-  //   });
-
-  //   // return () => {
-  //   //   socket.disconnect();
-  //   // };
-  // }, []);
-
   return (
     <Fragment>
       <Routes>

@@ -2,7 +2,7 @@ import axios from "axios";
 import { Filial, Orders } from "../assets/index";
 
 export const axiosInstance = axios.create({
-  baseURL: "https://vm4983125.25ssd.had.wf:5000",
+  baseURL: import.meta.env.VITE_API,
   headers: {
     "Content-Type": "application/json",
   },
