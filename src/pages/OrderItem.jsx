@@ -263,9 +263,9 @@ const OrderItem = () => {
             </tbody>
           </table>
           <button
-            className="p-2 px-6 text-sm rounded-sm bg-primary text-white ml-auto mb-5"
+            className={`p-2 px-6 text-sm rounded-sm bg-primary text-white ml-auto mb-5 ${!checkedItem?.spot_id && "bg-opacity-50"}`}
             onClick={submit}
-            disabled={loading}
+            disabled={loading || !checkedItem?.spot_id}
           >
             {loading ? "Загрузка..." : "Переслать на филиал"}
           </button>
