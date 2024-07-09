@@ -8,7 +8,8 @@ export const axiosInstance = axios.create({
   },
 });
 export const axiosInstancePoster = axios.create({
-  baseURL: "https://dev.joinposter.com/docs/v3/web/spots/getSpots?token=967898:49355888e8e490af3bcca79c5e6b1abf",
+  baseURL:
+    "https://dev.joinposter.com/docs/v3/web/spots/getSpots?token=967898:49355888e8e490af3bcca79c5e6b1abf",
   headers: {
     "Content-Type": "application/json",
   },
@@ -39,7 +40,7 @@ const filial = [
 
 const process = [
   { id: 1, name: "Все заказы", reqPath: "" },
-  { id: 2, name: "Ожидаемые" , reqPath: "accept"},
+  { id: 2, name: "Ожидаемые", reqPath: "accept" },
   { id: 4, name: "Готовится", reqPath: "cooking" },
   { id: 5, name: "Доставляется", reqPath: "delivery" },
   { id: 6, name: "Завершенные", reqPath: "finished" },
@@ -67,6 +68,19 @@ const orderProcess = [
     name: "Завершённые",
   },
 ];
+
+const users = [
+  { login: "yakkasaroyAdmin01", password: "yakkasaroyPassword01" },
+  { login: "olmazorAdmin02", password: "olmazorPassword02" },
+  { login: "mirzoulugbekAdmin03", password: "mirzoulugbekPassword03" },
+];
+
+export const authenticateUser = (login, password) => {
+  const user = users.find(
+    (user) => user.login === login && user.password === password
+  );
+  return user ? user : null;
+};
 
 export { filial, sideBarItems, process, orderProcess };
 
