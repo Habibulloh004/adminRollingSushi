@@ -34,7 +34,7 @@ function App() {
         navigate("/login");
       }
     }
-  }, [navigate]);
+  }, []);
 
   return (
     <Fragment>
