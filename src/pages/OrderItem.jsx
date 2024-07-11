@@ -115,8 +115,10 @@ const OrderItem = () => {
         lat: `${lat}`,
         lng: `${lng}`,
       },
-      comment: orderItem?.id
+      comment: orderItem?.id,
     };
+    console.log("postord", sendOrderPoster);
+    console.log("ordItem", orderItem);
     try {
       setLoading(true);
       const resStatus = await axios.put(
@@ -263,7 +265,9 @@ const OrderItem = () => {
             </tbody>
           </table>
           <button
-            className={`p-2 px-6 text-sm rounded-sm bg-primary text-white ml-auto mb-5 ${!checkedItem?.spot_id && "bg-opacity-50"}`}
+            className={`p-2 px-6 text-sm rounded-sm bg-primary text-white ml-auto mb-5 ${
+              !checkedItem?.spot_id && "bg-opacity-50"
+            }`}
             onClick={submit}
             disabled={loading || !checkedItem?.spot_id}
           >
