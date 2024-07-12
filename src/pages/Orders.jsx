@@ -126,9 +126,6 @@ const Orders = () => {
                     <Link
                       className="w-full top-0 left-0 h-full absolute cursor-pointer z-10"
                       to={`/${item.id}`}
-                      onClick={() => {
-                        socketMe?.emit("processing_order", item.id);
-                      }}
                     ></Link>
                   </td>
                 </tr>
