@@ -60,6 +60,7 @@ const OrderItem = () => {
         try {
           const results = await provider.search({ query: `${lat},${lng}` });
           if (results.length) {
+            console.log("open",results);
             setAddressName(results[0].label);
           }
         } catch (error) {
@@ -160,7 +161,10 @@ const OrderItem = () => {
     }
   };
 
-  if (!orderItem || !spots || !addressName) {
+  console.log(orderItem);
+  console.log(spots);
+  console.log(addressName);
+  if (!orderItem || !spots) {
     return (
       <div className="h-[500px] w-full justify-center flex items-center">
         <div role="status">
