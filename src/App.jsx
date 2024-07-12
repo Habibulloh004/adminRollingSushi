@@ -10,6 +10,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Branches = lazy(() => import("./pages/Branches"));
 
+// eslint-disable-next-line react/prop-types
 function PrivateRoute({ children }) {
   const authUser = localStorage.getItem("auth");
   if (!authUser) {

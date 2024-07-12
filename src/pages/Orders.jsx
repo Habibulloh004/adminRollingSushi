@@ -1,18 +1,21 @@
-import { Link } from "react-router-dom";
-import { formatPhoneNumber, formatPhoneNumber2 } from "../utils";
 import { useEffect, useState } from "react";
 import { useSocketContext } from "../context/SocketContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { formatPhoneNumber, formatPhoneNumber2 } from "../utils";
+import { Link } from "react-router-dom";
+import Switch from "../components/Switch/Switch";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
+  // const [currentPage, setCurrentPage] = useState(1);
+  // const [ordersPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const { socketMe } = useSocketContext();
+  const [audio] = useState(new Audio("../notification.mp3")); // Preload audio
+  const [hasUserInteraction, setHasUserInteraction] = useState(false);
 
   const tableHead = ["Номер телефона", "Адрес Доставки"];
-
-  const [audio] = useState(new Audio("../../public/notification.mp3"));
 
   const fetchData = async () => {
     const res = await axios.get(`${import.meta.env.VITE_BACK}/get_all_orders`);
@@ -25,19 +28,24 @@ const Orders = () => {
 
   useEffect(() => {
     const handleNewOrder = (data) => {
-      console.log(data.orders);
-      setOrders((prev) => {
-        const alreadyExists = prev.includes(data.orders);
-        return !alreadyExists ? [...prev, data.orders] : prev;
-      });
       toast.success("Новый заказ");
+      audio.play();
+      setOrders((prev) => [...prev, data]);
+      console.log(data);
     };
 
-    socketMe?.on("all_orders", handleNewOrder);
+    socketMe?.on("orderItem", handleNewOrder);
 
-    // Cleanup function: remove event listener on component unmount
-    return () => socketMe?.off("all_orders", handleNewOrder);
+    return () => socketMe?.off("orderItem", handleNewOrder);
   }, [socketMe]);
+
+
+  const setInteractionState = () => {
+    if (!hasUserInteraction) {
+      audio.play();
+    }
+    setHasUserInteraction((prev) => !prev);
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -45,9 +53,20 @@ const Orders = () => {
     }, 1000);
   }, []);
 
+
   return (
     <main className="grow text-cText container w-3/4 flex flex-col mb-4">
-      <p className="text-2xl font-bold p-4 shadow-shadowme px-9">Заказы</p>
+      {/* <button onClick={() => audio.play()}>click</button> */}
+
+      <div className="text-2xl font-bold p-4 shadow-shadowme px-9">
+        Заказы{" "}
+        <span className="float-right">
+          <Switch
+            hasUserInteraction={hasUserInteraction}
+            setInteractionState={setInteractionState}
+          />
+        </span>
+      </div>
       <section className="shadow-shadowme mt-3 px-4 grow flex flex-col justify-between items-center pb-5">
         {loading ? (
           <div className="h-[500px] flex items-center">

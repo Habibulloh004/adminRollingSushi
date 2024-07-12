@@ -12,8 +12,9 @@ export const SocketContextProvider = ({ children }) => {
   const [socketMe, setSocketMe] = useState(null);
   const [process, setProcess] = useState([160]);
 
+
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_BACK, {
+    const socket = io(import.meta.env.VITE_API, {
       reconnection: false,
     });
 
@@ -31,6 +32,7 @@ export const SocketContextProvider = ({ children }) => {
       socket.close();
     };
   }, []);
+
 
   return (
     <SocketContext.Provider value={{ socketMe, process, setProcess }}>
