@@ -7,9 +7,9 @@ const Switch = ({ hasUserInteraction, setInteractionState }) => {
       <input
         type="checkbox"
         className="checkbox peer"
-        checked={hasUserInteraction}
+        // checked={hasUserInteraction}
         id="checkbox"
-        onChange={() => setInteractionState()}
+        // onChange={() => setInteractionState()}
       />
       <label className="switch" htmlFor="checkbox">
         <span className="slider"></span>

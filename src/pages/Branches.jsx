@@ -32,7 +32,7 @@ const Branches = () => {
           selectedProcess?.reqPath == undefined ? "" : selectedProcess?.reqPath
         }`
       );
-      setOrders(data);
+      setOrders(data?.reverse());
       setTimeout(() => {
         setLoading(false);
       }, 500);

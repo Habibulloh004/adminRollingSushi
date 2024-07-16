@@ -4,7 +4,8 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { formatPhoneNumber, formatPhoneNumber2 } from "../utils";
 import { Link } from "react-router-dom";
-import Switch from "../components/Switch/Switch";
+// import Switch from "../components/Switch/Switch";
+import notice from "../../public/notice.mp3"
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -12,8 +13,8 @@ const Orders = () => {
   // const [ordersPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const { socketMe } = useSocketContext();
-  const [audio] = useState(new Audio("../notification.mp3")); // Preload audio
-  const [hasUserInteraction, setHasUserInteraction] = useState(false);
+  // const [audio] = useState(new Audio("../notification.mp3")); // Preload audio
+  // const [hasUserInteraction, setHasUserInteraction] = useState(false);
 
   const tableHead = ["Номер телефона", "Адрес Доставки"];
 
@@ -29,7 +30,9 @@ const Orders = () => {
   useEffect(() => {
     const handleNewOrder = (data) => {
       toast.success("Новый заказ");
-      audio.play();
+      // audio.play();
+      const sound = new Audio(notice)
+      sound.play()
       setOrders((prev) => [...prev, data]);
       console.log(data);
     };
@@ -40,12 +43,12 @@ const Orders = () => {
   }, [socketMe]);
 
 
-  const setInteractionState = () => {
-    if (!hasUserInteraction) {
-      audio.play();
-    }
-    setHasUserInteraction((prev) => !prev);
-  };
+  // const setInteractionState = () => {
+  //   if (!hasUserInteraction) {
+  //     audio.play();
+  //   }
+  //   setHasUserInteraction((prev) => !prev);
+  // };
 
   useEffect(() => {
     setTimeout(() => {
@@ -60,12 +63,12 @@ const Orders = () => {
 
       <div className="text-2xl font-bold p-4 shadow-shadowme px-9">
         Заказы{" "}
-        <span className="float-right">
+        {/* <span className="float-right">
           <Switch
-            hasUserInteraction={hasUserInteraction}
-            setInteractionState={setInteractionState}
+            // hasUserInteraction={hasUserInteraction}
+            // setInteractionState={setInteractionState}
           />
-        </span>
+        </span> */}
       </div>
       <section className="shadow-shadowme mt-3 px-4 grow flex flex-col justify-between items-center pb-5">
         {loading ? (
