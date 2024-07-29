@@ -60,7 +60,7 @@ const OrderItem = () => {
         try {
           const results = await provider.search({ query: `${lat},${lng}` });
           if (results.length) {
-            console.log("open",results);
+            console.log("open", results);
             setAddressName(results[0].label);
           }
         } catch (error) {
@@ -227,6 +227,10 @@ const OrderItem = () => {
           <p className="my-3">
             <span className="text-lg font-semibold">Сумма заказа</span> -{" "}
             {f(orderItem?.all_price / 100)} сум
+          </p>
+          <p className="my-3">
+            <span className="text-lg font-semibold">Метод оплата</span> -{" "}
+            {orderItem?.payment == "cash" ? "Наличные" : "Карта (Не оплачено)"}
           </p>
           <Map position={orderItem.client_address} />
         </section>
