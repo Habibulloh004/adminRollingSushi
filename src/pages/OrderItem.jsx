@@ -230,7 +230,11 @@ const OrderItem = () => {
           </p>
           <p className="my-3">
             <span className="text-lg font-semibold">Метод оплата</span> -{" "}
-            {orderItem?.payment == "cash" ? "Наличные" : "Карта (Не оплачено)"}
+            {orderItem?.payment == "cash"
+              ? "Наличные"
+              : orderItem?.payment == "creditCard"
+              ? "Карта (Не оплачено)"
+              : "Карта (Не оплачено)"}
           </p>
           <Map position={orderItem.client_address} />
         </section>
