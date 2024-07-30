@@ -233,7 +233,7 @@ const OrderItem = () => {
             {orderItem?.payment == "cash"
               ? "Наличные"
               : orderItem?.payment == "creditCard"
-              ? "Карта (Не оплачено)"
+              ? "Карта (Оплачено)"
               : "Карта (Не оплачено)"}
           </p>
           <Map position={orderItem.client_address} />
