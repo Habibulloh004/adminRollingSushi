@@ -206,7 +206,7 @@ const OrderItem = () => {
             Заказы
           </p>
         </section>
-        <section className="grow shadow-shadowme mt-3 py-6 px-9">
+        <section className="grow shadow-shadowme mt-3 py-6 px-9 space-y-2">
           <p className="text-2xl font-medium">
             {orderItem?.phone?.length > 11
               ? formatPhoneNumber(orderItem.phone)
@@ -224,11 +224,11 @@ const OrderItem = () => {
               </li>
             ))}
           </ol> */}
-          <p className="my-3">
+          <p className="">
             <span className="text-lg font-semibold">Сумма заказа</span> -{" "}
             {f(orderItem?.all_price / 100)} сум
           </p>
-          <p className="my-3">
+          <p className="">
             <span className="text-lg font-semibold">Метод оплата</span> -{" "}
             {orderItem?.payment == "cash"
               ? "Наличные"
@@ -236,6 +236,37 @@ const OrderItem = () => {
               ? "Карта (Оплачено)"
               : "Карта (Не оплачено)"}
           </p>
+          <p className="">
+            <span className="text-lg font-semibold">Сумма заказа</span> -{" "}
+            {f(orderItem?.all_price / 100)} сум
+          </p>
+          <p className="">
+            <span className="text-lg font-semibold">Бонусы</span> -{" "}
+            {f(orderItem?.payed_bonus)} сум
+          </p>
+          <p className="">
+            <span className="text-lg font-semibold">K оплате</span> -{" "}
+            {f(orderItem?.payed_sum / 100)} сум
+          </p>
+          <p className="">
+            <span className="text-lg font-semibold">Доставка</span> - 10,000 сум
+          </p>
+          {/* <span>
+            <p>Товары:</p>
+            <ol className="list-decimal my-2 mx-2 text-sm font-normal">
+              {orderData?.products.map((prod, idx) => {
+                const findProductName = myOrder?.products.find(
+                  (item) => item.product_id == prod.product_id
+                );
+                return (
+                  <li key={idx} className="flex gap-1">
+                    <p>{prod.num.split(".").slice(0, 1)}. шт / гр |</p>
+                    <p>{findProductName?.product_name}</p>
+                  </li>
+                );
+              })}
+            </ol>
+          </span> */}
           <Map position={orderItem.client_address} />
         </section>
       </div>
