@@ -242,7 +242,7 @@ const OrderItem = () => {
           </p>
           <p className="">
             <span className="text-lg font-semibold">Бонусы</span> -{" "}
-            {f(orderItem?.payed_bonus)} сум
+            {f(orderItem?.payed_bonus) / 100} сум
           </p>
           <p className="">
             <span className="text-lg font-semibold">K оплате</span> -{" "}
