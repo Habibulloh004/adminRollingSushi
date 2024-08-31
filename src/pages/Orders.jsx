@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { formatPhoneNumber, formatPhoneNumber2 } from "../utils";
 import { Link } from "react-router-dom";
 // import Switch from "../components/Switch/Switch";
-import notice from "../../public/notice.mp3"
+import notice from "../../public/notice.mp3";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -30,10 +30,19 @@ const Orders = () => {
   useEffect(() => {
     const handleNewOrder = (data) => {
       toast.success("Новый заказ");
-      // audio.play();
-      const sound = new Audio(notice)
-      sound.play()
-      setOrders((prev) => [...prev, data]);
+      const sound = new Audio(notice);
+      sound.play();
+
+      // Check if the incoming order already exists in the state
+      setOrders((prev) => {
+        const orderExists = prev.some((order) => order.id == data.id); // Replace 'id' with the appropriate unique identifier
+        console.log("exist", orderExists);
+        if (orderExists) {
+          return prev; // If the order exists, return the current state without changes
+        }
+        return [...prev, data]; // Add the new order if it doesn't exist
+      });
+
       console.log(data);
     };
 
@@ -41,7 +50,6 @@ const Orders = () => {
 
     return () => socketMe?.off("orderItem", handleNewOrder);
   }, [socketMe]);
-
 
   // const setInteractionState = () => {
   //   if (!hasUserInteraction) {
@@ -55,7 +63,6 @@ const Orders = () => {
       setLoading(false);
     }, 1000);
   }, []);
-
 
   return (
     <main className="grow text-cText container w-3/4 flex flex-col mb-4">
