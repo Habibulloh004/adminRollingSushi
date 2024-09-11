@@ -246,7 +246,7 @@ const OrderItem = () => {
           </p>
           <p className="">
             <span className="text-lg font-semibold">K оплате</span> -{" "}
-            {f(orderItem?.payed_sum / 10)} сум
+            {f(orderItem?.payed_sum / 100)} сум
           </p>
           <p className="">
             <span className="text-lg font-semibold">Тип заказа</span> -{" "}
