@@ -4,19 +4,15 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { formatPhoneNumber, formatPhoneNumber2 } from "../utils";
 import { Link } from "react-router-dom";
-// import Switch from "../components/Switch/Switch";
 import notice from "../../public/notice.mp3";
+import moment from "moment";
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  // const [currentPage, setCurrentPage] = useState(1);
-  // const [ordersPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const { socketMe } = useSocketContext();
-  // const [audio] = useState(new Audio("../notification.mp3")); // Preload audio
-  // const [hasUserInteraction, setHasUserInteraction] = useState(false);
 
-  const tableHead = ["Номер телефона", "Адрес Доставки"];
+  const tableHead = ["Номер телефона", "Адрес Доставки", "Создано в"];
 
   const fetchData = async () => {
     const res = await axios.get(`${import.meta.env.VITE_BACK}/get_all_orders`);
@@ -51,12 +47,10 @@ const Orders = () => {
     return () => socketMe?.off("orderItem", handleNewOrder);
   }, [socketMe]);
 
-  // const setInteractionState = () => {
-  //   if (!hasUserInteraction) {
-  //     audio.play();
-  //   }
-  //   setHasUserInteraction((prev) => !prev);
-  // };
+  const time = (date) => {
+    const dateTime = moment(date, "DD.MM.YYYY HH:mm");
+    return dateTime.format("HH:mm");
+  };
 
   useEffect(() => {
     setTimeout(() => {
@@ -66,17 +60,7 @@ const Orders = () => {
 
   return (
     <main className="grow text-cText container w-3/4 flex flex-col mb-4">
-      {/* <button onClick={() => audio.play()}>click</button> */}
-
-      <div className="text-2xl font-bold p-4 shadow-shadowme px-9">
-        Заказы{" "}
-        {/* <span className="float-right">
-          <Switch
-            // hasUserInteraction={hasUserInteraction}
-            // setInteractionState={setInteractionState}
-          />
-        </span> */}
-      </div>
+      <div className="text-2xl font-bold p-4 shadow-shadowme px-9">Заказы </div>
       <section className="shadow-shadowme mt-3 px-4 grow flex flex-col justify-between items-center pb-5">
         {loading ? (
           <div className="h-[500px] flex items-center">
@@ -123,14 +107,10 @@ const Orders = () => {
                       : formatPhoneNumber2(item.phone)}
                   </td>
                   <td className="p-5">
-                    <p
-                      className="z-40 inline-block"
-                      // onClick={() => {
-                      //   addPointToMap(item.client_address), console.log(item);
-                      // }}
-                    >
-                      {item.client_address}
-                    </p>
+                    <p className="z-40 inline-block">{item.client_address}</p>
+                  </td>
+                  <td className="p-5">
+                    <p className="z-40 inline-block">{time(item.created_at)}</p>
                   </td>
                   <td className="p-5">
                     <Link

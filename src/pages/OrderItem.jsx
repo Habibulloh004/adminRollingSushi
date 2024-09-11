@@ -108,7 +108,7 @@ const OrderItem = () => {
         product_id: +item.product_id,
         count: +item.amount,
       })),
-      delivery_price: 1000000,
+      delivery_price: orderItem.type == "delivery" ? 1000000 : 0,
       phone: orderItem.phone,
       service_mode: 3,
       client_address: {
@@ -246,11 +246,14 @@ const OrderItem = () => {
           </p>
           <p className="">
             <span className="text-lg font-semibold">K оплате</span> -{" "}
-            {f(orderItem?.payed_sum / 100)} сум
+            {f(orderItem?.payed_sum / 10)} сум
           </p>
-          <p className="">
-            <span className="text-lg font-semibold">Доставка</span> - 10,000 сум
-          </p>
+          {orderItem.type == "delivery" && (
+            <p className="">
+              <span className="text-lg font-semibold">Доставка</span> - 10,000
+              сум
+            </p>
+          )}
           {/* <span>
             <p>Товары:</p>
             <ol className="list-decimal my-2 mx-2 text-sm font-normal">
