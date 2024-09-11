@@ -248,10 +248,12 @@ const OrderItem = () => {
             <span className="text-lg font-semibold">K оплате</span> -{" "}
             {f(orderItem?.payed_sum / 100)} сум
           </p>
-          <p className="">
-            <span className="text-lg font-semibold">Тип заказа</span> -{" "}
-            {orderItem.type == "delivery" ? "Доставка": "На вынос"}
-          </p>
+          {orderItem.type && (
+            <p className="">
+              <span className="text-lg font-semibold">Тип заказа</span> -{" "}
+              {orderItem.type == "delivery" ? "Доставка" : "На вынос"}
+            </p>
+          )}
           {orderItem.type == "delivery" && (
             <p className="">
               <span className="text-lg font-semibold">Доставка</span> - 10,000
