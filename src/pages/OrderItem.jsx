@@ -237,10 +237,6 @@ const OrderItem = () => {
               : "Карта (Не оплачено)"}
           </p>
           <p className="">
-            <span className="text-lg font-semibold">Сумма заказа</span> -{" "}
-            {f(orderItem?.all_price / 100)} сум
-          </p>
-          <p className="">
             <span className="text-lg font-semibold">Бонусы</span> -{" "}
             {f(orderItem?.payed_bonus / 100)} сум
           </p>
