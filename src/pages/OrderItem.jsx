@@ -92,6 +92,7 @@ const OrderItem = () => {
     console.log(checkedItem);
 
     const sendData = JSON.parse(productsString);
+    const deliver = orderItem.type == "delivery" || orderItem.type == ""
     const sendOrderPoster = {
       spot_id: checkedItem?.spot_id,
       // products: [
@@ -108,9 +109,9 @@ const OrderItem = () => {
         product_id: +item.product_id,
         count: +item.amount,
       })),
-      delivery_price: orderItem.type == "delivery" ? 1000000 : 0,
+      delivery_price: deliver ? 1000000 : 0,
       phone: orderItem.phone,
-      service_mode: 3,
+      service_mode: deliver ? 3 : 2,
       client_address: {
         address1: addressName,
         lat: `${lat}`,
@@ -246,8 +247,8 @@ const OrderItem = () => {
           </p>
           <p className="">
             <span className="text-lg font-semibold">Тип заказа</span> -{" "}
-            {orderItem.type == "delivery" || orderItem.type == "" && "Доставка" }
-            
+            {orderItem.type == "delivery" && "Доставка" }
+            {orderItem.type == "" && "Доставка" }
             {orderItem.type != "delivery" && orderItem.type != "" && `На вынос (${orderItem.type.replace(/^take_away\s*/, '')})` }
           </p>
           {orderItem.type == "delivery" && (
