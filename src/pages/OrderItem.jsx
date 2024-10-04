@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { OpenStreetMapProvider } from "leaflet-geosearch";
+import { getDistance, findNearest } from "geolib";
 
 const OrderItem = () => {
   const navigate = useNavigate();
@@ -18,6 +19,10 @@ const OrderItem = () => {
   const [loading, setLoading] = useState(false);
   const [clientAdress, setClientAdress] = useState(null);
   const [addressName, setAddressName] = useState("");
+  const [orderLocation, setOrderLocation] = useState({});
+  const [spotLocations, setSpotLocations] = useState([]);
+  const [nearestSpot, setNearestSpot] = useState({});
+  const [distance, setDistance] = useState("");
 
   const tableHead = ["Филиал"];
 
@@ -27,17 +32,53 @@ const OrderItem = () => {
     );
     setClientAdress(data.client_address);
     setOrderItem(data);
+    const [latitude, longitude] = data.client_address.split(",").map(Number);
+
+    setOrderLocation({
+      latitude,
+      longitude,
+    });
   };
 
   const fetchSpot = async () => {
     const { data } = await axios.get(`${import.meta.env.VITE_API}/getSpot`);
     setSpots(data);
+    setSpotLocations(
+      data.map((item) => ({
+        id: item.spot_id,
+        latitude: item.lat,
+        longitude: item.lng,
+        name: item.name,
+      }))
+    );
   };
 
   useEffect(() => {
     fetchData();
     fetchSpot();
   }, []);
+
+  useEffect(() => {
+    setNearestSpot(findNearest(orderLocation, spotLocations));
+  }, [orderItem, spots]);
+
+  useEffect(() => {
+    if (nearestSpot && orderItem) {
+      let latitudeLongitude = orderItem.client_address.split(",");
+      let lat = parseFloat(latitudeLongitude[0]);
+      let lng = parseFloat(latitudeLongitude[1]);
+      const orderAddress = {
+        latitude: lat,
+        longitude: lng,
+      };
+      setDistance(
+        getDistance(
+          { latitude: nearestSpot.latitude, longitude: nearestSpot.longitude },
+          orderAddress
+        )
+      );
+    }
+  }, [nearestSpot]);
 
   useEffect(() => {
     if (orderItem) {
@@ -60,7 +101,7 @@ const OrderItem = () => {
         try {
           const results = await provider.search({ query: `${lat},${lng}` });
           if (results.length) {
-            console.log("open", results);
+            // console.log("open", results);
             setAddressName(results[0].label);
           }
         } catch (error) {
@@ -79,6 +120,92 @@ const OrderItem = () => {
   const headers = {
     "Content-Type": "application/json",
   };
+  // const submit = async (e) => {
+  //   e.preventDefault();
+  //   const productsString = orderItem.products.replace(
+  //     /([{,])(\s*)([a-zA-Z0-9_]+?):/g,
+  //     '$1"$3":'
+  //   );
+
+  //   let latitudeLongitude = orderItem?.client_address?.split(",");
+  //   let lat = parseFloat(latitudeLongitude[0]);
+  //   let lng = parseFloat(latitudeLongitude[1]);
+  //   console.log(checkedItem);
+
+  //   const sendData = JSON.parse(productsString);
+  //   const deliver = orderItem.type == "delivery" || orderItem.type == "";
+  //   const sendOrderPoster = {
+  //     spot_id: checkedItem?.spot_id,
+  //     // products: [
+  //     //   {
+  //     //     product_id: 3,
+  //     //     count: 1,
+  //     //   },
+  //     //   {
+  //     //     product_id: 5,
+  //     //     count: 1,
+  //     //   },
+  //     // ],
+  //     products: sendData.map((item) => ({
+  //       product_id: +item.product_id,
+  //       count: +item.amount,
+  //     })),
+  //     delivery_price: deliver ? 1000000 : 0,
+  //     phone: orderItem.phone,
+  //     service_mode: deliver ? 3 : 2,
+  //     client_address: {
+  //       address1: addressName,
+  //       lat: `${lat}`,
+  //       lng: `${lng}`,
+  //     },
+  //     comment: orderItem?.id,
+  //   };
+  //   console.log("postord", sendOrderPoster);
+  //   console.log("ordItem", orderItem);
+  //   try {
+  //     setLoading(true);
+  //     const resStatus = await axios.put(
+  //       `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
+  //       JSON.stringify({
+  //         status: "accept",
+  //       }),
+  //       { headers }
+  //     );
+  //     const resSpot = await axios.put(
+  //       `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
+  //       JSON.stringify({
+  //         spot_id: `${+checkedItem.spot_id}`,
+  //       }),
+  //       { headers }
+  //     );
+
+  //     const postPoster = await axios.post(
+  //       `${import.meta.env.VITE_API}/api/posttoposter`,
+  //       JSON.stringify(sendOrderPoster),
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+
+  //     // const tgRes = await axios.get(
+  //     //   `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=`
+  //     // )
+  //     toast.success("Заказ успешно изменен!");
+
+  //     console.log("poster", postPoster);
+  //     console.log("st", resStatus);
+  //     console.log("sp", resSpot);
+  //     navigate("/");
+  //   } catch (e) {
+  //     setLoading(false);
+  //     console.log(e);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const submit = async (e) => {
     e.preventDefault();
     const productsString = orderItem.products.replace(
@@ -89,22 +216,11 @@ const OrderItem = () => {
     let latitudeLongitude = orderItem?.client_address?.split(",");
     let lat = parseFloat(latitudeLongitude[0]);
     let lng = parseFloat(latitudeLongitude[1]);
-    console.log(checkedItem);
 
     const sendData = JSON.parse(productsString);
-    const deliver = orderItem.type == "delivery" || orderItem.type == ""
+    const deliver = orderItem.type == "delivery" || orderItem.type == "";
     const sendOrderPoster = {
       spot_id: checkedItem?.spot_id,
-      // products: [
-      //   {
-      //     product_id: 3,
-      //     count: 1,
-      //   },
-      //   {
-      //     product_id: 5,
-      //     count: 1,
-      //   },
-      // ],
       products: sendData.map((item) => ({
         product_id: +item.product_id,
         count: +item.amount,
@@ -119,34 +235,73 @@ const OrderItem = () => {
       },
       comment: orderItem?.id,
     };
+
     console.log("postord", sendOrderPoster);
     console.log("ordItem", orderItem);
+
     try {
       setLoading(true);
+      // Update order status
       const resStatus = await axios.put(
         `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
-        JSON.stringify({
-          status: "accept",
-        }),
-        { headers }
-      );
-      const resSpot = await axios.put(
-        `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
-        JSON.stringify({
-          spot_id: `${+checkedItem.spot_id}`,
-        }),
+        JSON.stringify({ status: "accept" }),
         { headers }
       );
 
+      // Update order spot
+      const resSpot = await axios.put(
+        `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
+        JSON.stringify({ spot_id: `${+checkedItem.spot_id}` }),
+        { headers }
+      );
+
+      // Post order to external API
       const postPoster = await axios.post(
         `${import.meta.env.VITE_API}/api/posttoposter`,
         JSON.stringify(sendOrderPoster),
         {
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
       );
+
+      const yandexMapsLink = `https://yandex.com/maps/?pt=${lng},${lat}&z=16&l=map`;
+      // Format Telegram message
+      const message = `
+  📦 Новый заказ!
+  🛒 Название филиал: ${checkedItem.name}
+  📞 Телефон: ${orderItem.phone}
+  🏠 Адрес: ${addressName ?? addressName}
+  🔗 [Посмотреть на карте](${yandexMapsLink})
+  🗺️ Расстояние: ${(distance / 1000).toFixed(1)} км
+  💵 Сумма заказа: ${f(orderItem?.all_price / 100)} сум
+  💳 Метод оплаты: ${
+    orderItem?.payment === "cash"
+      ? "Наличные"
+      : orderItem?.payment === "creditCard"
+      ? "Карта (Оплачено)"
+      : "Карта (Не оплачено)"
+  }
+  🎁 Бонусы: ${f(orderItem?.payed_bonus / 100)} сум
+  💵 К оплате: ${f(orderItem?.payed_sum / 100)} сум
+  🛍 Тип заказа: ${
+    orderItem.type === "delivery"
+      ? "Доставка"
+      : orderItem.type === ""
+      ? "Доставка"
+      : `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`
+  }
+  🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
+
+      `.trim();
+
+      // Send message to Telegram
+      const tgRes = await axios.get(
+        `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
+          message
+        )}`
+      );
+
+      console.log(tgRes);
 
       toast.success("Заказ успешно изменен!");
 
@@ -162,9 +317,11 @@ const OrderItem = () => {
     }
   };
 
+  console.log("nearspot", nearestSpot);
+
   console.log(orderItem);
-  console.log(spots);
   console.log(addressName);
+
   if (!orderItem || !spots) {
     return (
       <div className="h-[500px] w-full justify-center flex items-center">
@@ -247,9 +404,11 @@ const OrderItem = () => {
           </p>
           <p className="">
             <span className="text-lg font-semibold">Тип заказа</span> -{" "}
-            {orderItem.type == "delivery" && "Доставка" }
-            {orderItem.type == "" && "Доставка" }
-            {orderItem.type != "delivery" && orderItem.type != "" && `На вынос (${orderItem.type.replace(/^take_away\s*/, '')})` }
+            {orderItem.type == "delivery" && "Доставка"}
+            {orderItem.type == "" && "Доставка"}
+            {orderItem.type != "delivery" &&
+              orderItem.type != "" &&
+              `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`}
           </p>
           {orderItem.type == "delivery" && (
             <p className="">
@@ -274,46 +433,59 @@ const OrderItem = () => {
               })}
             </ol>
           </span> */}
-          <Map position={orderItem.client_address} />
+          <Map
+            position={orderItem.client_address}
+            nearestSpot={nearestSpot}
+            spots={spots}
+          />
         </section>
       </div>
       <div className="container grow w-1/2 flex flex-col">
         <p className="text-2xl font-bold p-4 shadow-shadowme px-9">Филиалы</p>
         <section className="grow shadow-shadowme mt-3 px-4 flex flex-col items-end justify-between">
-          <table className="w-full text-center">
-            <thead className="border-b-2">
-              <tr>
-                <th></th>
-                {tableHead.map((item) => (
-                  <th key={item} className="py-5">
-                    {item}
-                  </th>
-                ))}
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {spots.map((item, idx) => (
-                <tr key={idx} className="relative">
-                  <td className="p-5">{idx + 1}.</td>
-                  <td className="p-5">{item.name}</td>
-                  <td className="p-5">
-                    <label
-                      onClick={() => setCheckedItem(item)}
-                      className="absolute top-0 left-0 w-[85%] h-full"
-                    ></label>
-                    <input
-                      name="spots"
-                      type="radio"
-                      id={item.id}
-                      className="accent-primary w-4 h-4"
-                      onChange={() => setCheckedItem(item)}
-                    />
-                  </td>
+          <div className="w-full">
+            <table className="w-full text-center">
+              <thead className="border-b-2">
+                <tr>
+                  <th></th>
+                  {tableHead.map((item) => (
+                    <th key={item} className="py-5">
+                      {item}
+                    </th>
+                  ))}
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {spots.map((item, idx) => (
+                  <tr key={idx} className="relative">
+                    <td className="p-5">{idx + 1}.</td>
+                    <td className="p-5">{item.name}</td>
+                    <td className="p-5">
+                      <label
+                        onClick={() => setCheckedItem(item)}
+                        className="absolute top-0 left-0 w-[85%] h-full"
+                      ></label>
+                      <input
+                        name="spots"
+                        type="radio"
+                        id={item.id}
+                        className="accent-primary w-4 h-4"
+                        onChange={() => setCheckedItem(item)}
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="mt-4 w-11/12 mx-auto flex items-center justify-between gap-5">
+              <p className="text-lg font-semibold">Ближайший филиал</p>
+              <p>
+                {nearestSpot && nearestSpot.name} -{" "}
+                {(distance / 1000).toFixed(1)} km
+              </p>
+            </div>
+          </div>
           <button
             className={`p-2 px-6 text-sm rounded-sm bg-primary text-white ml-auto mb-5 ${
               !checkedItem?.spot_id && "bg-opacity-50"

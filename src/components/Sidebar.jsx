@@ -9,7 +9,6 @@ const Sidebar = () => {
       today.getMonth() + 1 < 10
         ? `0${today.getMonth() + 1}`
         : today.getMonth() + 1;
-    console.log(today.getMonth());
     const day = today.getDate() < 10 ? "0" + today.getDate() : today.getDate();
     const year = today.getFullYear();
     return `${day}.${month}.${year}`;

@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import { Icon } from "leaflet";
+import { YellowL } from "../assets/index";
 import "leaflet/dist/leaflet.css";
 
 // eslint-disable-next-line react/prop-types
@@ -18,6 +19,13 @@ const Map = (prop) => {
       "https://cdn1.iconfinder.com/data/icons/basic-ui-elements-coloricon/21/06_1-512.png",
     iconSize: [30, 30],
   });
+  const icon3 = new Icon({
+    iconUrl: YellowL,
+    iconSize: [25, 25],
+  });
+  if (!prop.nearestSpot || !prop.spots || !prop.position) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <>
@@ -33,20 +41,41 @@ const Map = (prop) => {
           />
           <Marker position={[lat, lng]} icon={icon}>
             <Popup>
-              <h3>hello I'm client</h3>
+              <h3>Привет, я клиент.</h3>
             </Popup>
           </Marker>
-          <Marker position={[41.267193, 69.226858]} icon={icon2}>
+          {/* {prop.spots &&
+            prop.spots.map((item) => (
+              <Marker
+                key={item.spot_id}
+                position={[item.lat, item.lng]}
+                icon={prop.nearestSpot.id == item.spot_id ? icon2 : icon3}
+              >
+                <Popup>
+                  <h3>{item.name}</h3>
+                </Popup>
+              </Marker>
+            ))} */}
+          <Marker
+            position={[41.267193, 69.226858]}
+            icon={prop.nearestSpot.id == 1 ? icon2 : icon3}
+          >
             <Popup>
               <h3>Yakkasaroy</h3>
             </Popup>
           </Marker>
-          <Marker position={[41.350852, 69.244140]} icon={icon2}>
+          <Marker
+            position={[41.350852, 69.24414]}
+            icon={prop.nearestSpot.id == 2 ? icon2 : icon3}
+          >
             <Popup>
               <h3>Olmazor</h3>
             </Popup>
           </Marker>
-          <Marker position={[41.318682, 69.339927]} icon={icon2}>
+          <Marker
+            position={[41.318682, 69.339927]}
+            icon={prop.nearestSpot.id == 3 ? icon2 : icon3}
+          >
             <Popup>
               <h3>Buyuk ipak yo'li</h3>
             </Popup>
