@@ -219,6 +219,7 @@ const OrderItem = () => {
 
     const sendData = JSON.parse(productsString);
     const deliver = orderItem.type == "delivery" || orderItem.type == "";
+    console.log("checked", checkedItem);
     const sendOrderPoster = {
       spot_id: checkedItem?.spot_id,
       products: sendData.map((item) => ({
@@ -265,6 +266,16 @@ const OrderItem = () => {
       );
 
       const yandexMapsLink = `https://yandex.com/maps/?pt=${lng},${lat}&z=16&l=map`;
+
+      const orderAddress = {
+        latitude: lat,
+        longitude: lng,
+      };
+
+      getDistance(
+        { latitude: checkedItem.lat, longitude: checkedItem.lng },
+        orderAddress
+      );
       // Format Telegram message
       const message = `
   📦 Новый заказ!
@@ -272,7 +283,12 @@ const OrderItem = () => {
   📞 Телефон: ${orderItem.phone}
   🏠 Адрес: ${addressName ?? addressName}
   🔗 [Посмотреть на карте](${yandexMapsLink})
-  🗺️ Расстояние: ${(distance / 1000).toFixed(1)} км
+  🗺️ Расстояние: ${(
+    getDistance(
+      { latitude: checkedItem.lat, longitude: checkedItem.lng },
+      orderAddress
+    ) / 1000
+  ).toFixed(1)} км
   💵 Сумма заказа: ${f(orderItem?.all_price / 100)} сум
   💳 Метод оплаты: ${
     orderItem?.payment === "cash"
