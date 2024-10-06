@@ -278,7 +278,7 @@ const OrderItem = () => {
       );
       // Format Telegram message
       const message = `
-  📦 Новый заказ!
+  📦 Новый заказ! №${orderItem.id}
   🛒 Название филиал: ${checkedItem.name}
   📞 Телефон: ${orderItem.phone}
   🏠 Адрес: ${addressName ?? addressName}
