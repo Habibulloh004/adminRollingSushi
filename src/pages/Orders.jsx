@@ -15,7 +15,7 @@ const Orders = () => {
   const tableHead = ["Номер телефона", "Адрес Доставки", "Создано в"];
 
   const fetchData = async () => {
-    const res = await axios.get(`${import.meta.env.VITE_BACK}/get_all_orders`);
+    const res = await axios.get(`${import.meta.env.VITE_BACK}/get_status/empty`);
     setOrders(res?.data.filter((item) => item.status == ""));
   };
 
