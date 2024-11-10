@@ -308,7 +308,7 @@ const OrderItem = () => {
   }
   
   `.trim();
-  // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
+      // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
 
       // Send message to Telegram
       const tgRes = await axios.get(
@@ -426,13 +426,14 @@ const OrderItem = () => {
               orderItem.type != "" &&
               `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`}
           </p>
+          {/* 
           {orderItem.type == "delivery" && (
             <p className="">
               <span className="text-lg font-semibold">Доставка</span> - 10,000
               сум
             </p>
           )}
-
+          */}
           {/* <span>
             <p>Товары:</p>
             <ol className="list-decimal my-2 mx-2 text-sm font-normal">
