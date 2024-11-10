@@ -226,7 +226,7 @@ const OrderItem = () => {
         product_id: +item.product_id,
         count: +item.amount,
       })),
-      delivery_price: deliver ? 1000000 : 0,
+      // delivery_price: deliver ? 1000000 : 0,
       phone: orderItem.phone,
       service_mode: deliver ? 3 : 2,
       client_address: {
@@ -306,9 +306,9 @@ const OrderItem = () => {
       ? "Доставка"
       : `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`
   }
-  🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
-
-      `.trim();
+  
+  `.trim();
+  // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
 
       // Send message to Telegram
       const tgRes = await axios.get(
