@@ -306,6 +306,7 @@ const OrderItem = () => {
       ? "Доставка"
       : `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`
   }
+    🚚 Доставка: 0
   
   `.trim();
       // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
@@ -426,6 +427,11 @@ const OrderItem = () => {
               orderItem.type != "" &&
               `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`}
           </p>
+          {orderItem.type == "delivery" && (
+            <p className="">
+              <span className="text-lg font-semibold">Доставка</span> - 0 сум
+            </p>
+          )}
           {/* 
           {orderItem.type == "delivery" && (
             <p className="">
