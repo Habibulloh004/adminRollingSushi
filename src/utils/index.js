@@ -30,6 +30,12 @@ const sideBarItems = [
     title: "Филиалы",
     path: "/branches",
   },
+  {
+    id: 3,
+    icon: "https://img.icons8.com/ios7/512w/FFFFFF/newspaper-.png",
+    title: "Рассылка",
+    path: "/news",
+  },
 ];
 
 const filial = [

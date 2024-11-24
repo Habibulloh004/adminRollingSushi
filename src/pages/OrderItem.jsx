@@ -117,9 +117,6 @@ const OrderItem = () => {
     navigate(-1);
     // socketMe?.emit("stopped_process_order", orderItem?.id)
   };
-  const headers = {
-    "Content-Type": "application/json",
-  };
   // const submit = async (e) => {
   //   e.preventDefault();
   //   const productsString = orderItem.products.replace(
@@ -239,31 +236,71 @@ const OrderItem = () => {
 
     console.log("postord", sendOrderPoster);
     console.log("ordItem", orderItem);
+    const headers = {
+      "Content-Type": "application/json",
+      // Add other headers if necessary
+    };
+
+    const updateOrderStatus = axios.put(
+      `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
+      JSON.stringify({ status: "accept" }),
+      { headers }
+    );
+
+    const updateOrderSpot = axios.put(
+      `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
+      JSON.stringify({ spot_id: `${+checkedItem.spot_id}` }),
+      { headers }
+    );
+
+    const postToExternalAPI = axios.post(
+      `${import.meta.env.VITE_API}/api/posttoposter`,
+      JSON.stringify(sendOrderPoster),
+      { headers: { "Content-Type": "application/json" } }
+    );
+    const notifyApi = axios.post(`${import.meta.env.VITE_API}/notify`, {
+      fcm: orderItem.fcm,
+      fcm_lng: orderItem.fcm_lng,
+      status: "accept",
+    });
 
     try {
       setLoading(true);
       // Update order status
-      const resStatus = await axios.put(
-        `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
-        JSON.stringify({ status: "accept" }),
-        { headers }
-      );
+      // const resStatus = await axios.put(
+      //   `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
+      //   JSON.stringify({ status: "accept" }),
+      //   { headers }
+      // );
 
-      // Update order spot
-      const resSpot = await axios.put(
-        `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
-        JSON.stringify({ spot_id: `${+checkedItem.spot_id}` }),
-        { headers }
-      );
+      // // Update order spot
+      // const resSpot = await axios.put(
+      //   `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
+      //   JSON.stringify({ spot_id: `${+checkedItem.spot_id}` }),
+      //   { headers }
+      // );
 
-      // Post order to external API
-      const postPoster = await axios.post(
-        `${import.meta.env.VITE_API}/api/posttoposter`,
-        JSON.stringify(sendOrderPoster),
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      // // Post order to external API
+      // const postPoster = await axios.post(
+      //   `${import.meta.env.VITE_API}/api/posttoposter`,
+      //   JSON.stringify(sendOrderPoster),
+      //   {
+      //     headers: { "Content-Type": "application/json" },
+      //   }
+      // );
+
+      const [resStatus, resSpot, postPoster, notify] = await Promise.all([
+        updateOrderStatus,
+        updateOrderSpot,
+        postToExternalAPI,
+        notifyApi,
+      ]);
+
+      // Handle responses
+      console.log("Order status updated:", resStatus.data);
+      console.log("Order spot updated:", resSpot.data);
+      console.log("Order posted to external API:", postPoster.data);
+      console.log("Notify API:", notify.data);
 
       const yandexMapsLink = `https://yandex.com/maps/?pt=${lng},${lat}&z=16&l=map`;
 

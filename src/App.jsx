@@ -9,6 +9,7 @@ const Layout = lazy(() => import("./Layout"));
 const Login = lazy(() => import("./pages/Login"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Branches = lazy(() => import("./pages/Branches"));
+const News = lazy(() => import("./pages/News"));
 
 // eslint-disable-next-line react/prop-types
 function PrivateRoute({ children }) {
@@ -63,6 +64,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <OrderItem />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="news"
+              element={
+                <PrivateRoute>
+                  <News />
                 </PrivateRoute>
               }
             />
