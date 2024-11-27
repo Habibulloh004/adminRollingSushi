@@ -230,6 +230,7 @@ const OrderItem = () => {
         address1: addressName,
         lat: `${lat}`,
         lng: `${lng}`,
+        comment: `${orderItem.address_comment}`
       },
       comment: orderItem?.id,
     };

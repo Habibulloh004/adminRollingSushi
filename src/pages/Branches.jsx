@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { formatPhoneNumber, formatPhoneNumber2, process } from "../utils";
 import { motion } from "framer-motion";
+import { FaEye } from "react-icons/fa";
 import axios from "axios";
 
 const Branches = () => {
@@ -15,9 +16,7 @@ const Branches = () => {
   const [selectedBranch, setSelectedBranch] = useState(spots[0]);
 
   const fetchSpot = async () => {
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API}/getSpot`
-    );
+    const { data } = await axios.get(`${import.meta.env.VITE_API}/getSpot`);
     setSpots(data);
     setSelectedBranch(data[0]);
   };
@@ -171,6 +170,7 @@ const Branches = () => {
                   <th className="py-5 w-[25%]">Номер телефона</th>
                   <th className="py-5 w-[35%]">Адрес Доставки</th>
                   <th className="py-5">Статус</th>
+                  <th className="py-5">Показать отзывы</th>
                 </tr>
               </thead>
               <tbody>
@@ -190,6 +190,18 @@ const Branches = () => {
                         </td>
                         <td className="p-5 w-[35%]">{item.client_address}</td>
                         <td className="p-5">{getStatus(item.status)}</td>
+                        <td className="text-right">
+                          <FaEye
+                            onClick={() => {
+                              alert(
+                                item.address_comment.length > 0
+                                  ? item.address_comment
+                                  : "Нет отзывов"
+                              );
+                            }}
+                            className="size-6 text-center mx-auto"
+                          />
+                        </td>
                       </tr>
                       {/* {openStates[item.id] && (
                       <tr>
