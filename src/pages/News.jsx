@@ -4,7 +4,6 @@ function News() {
   const [formData, setFormData] = useState({
     title: "",
     subTitle: "",
-    text: "",
   });
 
   const handleChange = (e) => {
@@ -30,7 +29,7 @@ function News() {
 
       const data = await response.json();
       console.log("Server response:", data);
-      setFormData({ title: "", subTitle: "", text: "" }); // Reset form
+      setFormData({ title: "", subTitle: "" }); // Reset form
     } catch (error) {
       console.error("Error submitting form:", error);
     }
@@ -69,7 +68,7 @@ function News() {
           />
         </div>
 
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label className="block mb-1 text-sm font-medium" htmlFor="text">
             Текст
           </label>
@@ -81,7 +80,7 @@ function News() {
             className="w-full p-2 border border-gray-300 rounded"
             rows="4"
           />
-        </div>
+        </div> */}
 
         <button
           type="submit"

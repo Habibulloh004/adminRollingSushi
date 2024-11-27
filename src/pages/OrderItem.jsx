@@ -230,9 +230,13 @@ const OrderItem = () => {
         address1: addressName,
         lat: `${lat}`,
         lng: `${lng}`,
-        comment: `${orderItem.address_comment}`
+        comment: `${orderItem.address_comment}`,
       },
-      comment: orderItem?.id,
+      comment: JSON.stringify({
+        order_id: orderItem?.id,
+        fcm: orderItem.fcm,
+        fcm_lng: orderItem.fcm_lng,
+      }),
     };
 
     console.log("postord", sendOrderPoster);
