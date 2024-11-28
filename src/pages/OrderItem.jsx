@@ -22,6 +22,7 @@ const OrderItem = () => {
   const [orderLocation, setOrderLocation] = useState({});
   const [spotLocations, setSpotLocations] = useState([]);
   const [nearestSpot, setNearestSpot] = useState({});
+  const [clientOrders, setClientOrders] = useState(0);
   const [distance, setDistance] = useState("");
 
   const tableHead = ["Филиал"];
@@ -53,6 +54,13 @@ const OrderItem = () => {
     );
   };
 
+  const fetchClientOrders = async () => {
+    const { data } = await axios.get(
+      `${import.meta.env.VITE_API}/getClientTransaction/${orderItem.phone}`
+    );
+    setClientOrders(data && JSON.parse(data.comment).length);
+  };
+
   useEffect(() => {
     fetchData();
     fetchSpot();
@@ -82,6 +90,7 @@ const OrderItem = () => {
 
   useEffect(() => {
     if (orderItem) {
+      fetchClientOrders();
       const productsString = orderItem.products.replace(
         /([{,])(\s*)([a-zA-Z0-9_]+?):/g,
         '$1"$3":'
@@ -349,6 +358,8 @@ const OrderItem = () => {
       : `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`
   }
     🚚 Доставка: 0
+    📦 Количество заказов: ${clientOrders}
+    ✏️ Комментарий к адресу: ${orderItem.address_comment ?? "Не указан"}
   
   `.trim();
       // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
