@@ -2,6 +2,8 @@ import { Route, Routes, Navigate, useNavigate } from "react-router-dom";
 import { Fragment, lazy, useEffect, Suspense } from "react";
 import OrderItem from "./pages/OrderItem";
 import { Toaster } from "react-hot-toast";
+import axios from "axios";
+import { useEvent } from "./store/event";
 // import Login from "./pages/Login";
 // import Orders from "./pages/Orders";
 
@@ -10,6 +12,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Branches = lazy(() => import("./pages/Branches"));
 const News = lazy(() => import("./pages/News"));
+const CreateOrder = lazy(() => import("./pages/CreateOrder"));
 
 // eslint-disable-next-line react/prop-types
 function PrivateRoute({ children }) {
@@ -22,6 +25,13 @@ function PrivateRoute({ children }) {
 
 function App() {
   const navigate = useNavigate();
+  const {
+    setProductsData,
+    setCategoryData,
+    setClientData,
+    setIsLoading,
+    setSpotsData,
+  } = useEvent();
 
   useEffect(() => {
     const authUser = localStorage.getItem("auth");
@@ -36,6 +46,26 @@ function App() {
         navigate("/login");
       }
     }
+    const fetchData = async () => {
+      try {
+        const [posterClients, posterCategories, posterProducts, posterSpots] =
+          await Promise.all([
+            axios.get(`${import.meta.env.VITE_API}/posterClients`),
+            axios.get(`${import.meta.env.VITE_API}/posterCategories`),
+            axios.get(`${import.meta.env.VITE_API}/posterProducts`),
+            axios.get(`${import.meta.env.VITE_API}/getSpot`),
+          ]);
+        setCategoryData(posterCategories?.data);
+        setProductsData(posterProducts?.data);
+        setClientData(posterClients?.data);
+        setSpotsData(posterSpots?.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   return (
@@ -72,6 +102,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <News />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="create-order"
+              element={
+                <PrivateRoute>
+                  <CreateOrder />
                 </PrivateRoute>
               }
             />

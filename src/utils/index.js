@@ -1,5 +1,7 @@
 import axios from "axios";
 import { Filial, Orders } from "../assets/index";
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge"
 
 export const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API,
@@ -35,6 +37,12 @@ const sideBarItems = [
     icon: "https://img.icons8.com/ios7/512w/FFFFFF/newspaper-.png",
     title: "Рассылка",
     path: "/news",
+  },
+  {
+    id: 4,
+    icon: "https://www.nicepng.com/png/full/334-3345112_create-an-inventory-add-property-icon-png.png",
+    title: "Создать заказ",
+    path: "/create-order",
   },
 ];
 
@@ -80,6 +88,16 @@ const users = [
   { login: "olmazorAdmin02", password: "olmazorPassword02" },
   { login: "mirzoulugbekAdmin03", password: "mirzoulugbekPassword03" },
 ];
+export const orderListData = [
+  {
+    id: 1,
+    title: "Чек",
+  },
+  {
+    id: 2,
+    title: "Клиент",
+  },
+];
 
 export const authenticateUser = (login, password) => {
   const user = users.find(
@@ -118,4 +136,14 @@ export function formatPhoneNumber2(phoneNumber) {
   const fourthPart = phoneNumber.slice(8, 10);
 
   return `${countryCode} (${firstPart}) ${secondPart}-${thirdPart}-${fourthPart}`;
+}
+export function truncateText(text, maxLength) {
+  if (text?.length > maxLength) {
+    return text.slice(0, maxLength) + "...";
+  }
+  return text;
+}
+
+export function cn(...inputs) {
+  return twMerge(clsx(inputs));
 }
