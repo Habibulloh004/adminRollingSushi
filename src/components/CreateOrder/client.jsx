@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import { orderCreateInfo, useEvent } from "../../store/event";
+import { Plus } from "lucide-react";
 
 const ITEMS_PER_PAGE = 20; // Sahifadagi elementlar soni
 
@@ -68,6 +69,9 @@ const Client = () => {
               className=" w-full py-1 outline-none font-medium text-thin border-0 p-0 bg-transparent pr-2"
             />
           </div>
+          <NavLink to={"/create-order?newClient=true"}>
+            <Plus size={32} />
+          </NavLink>
         </div>
 
         {/* Klientlar roʻyxati */}

@@ -12,13 +12,42 @@ import toast from "react-hot-toast";
 import { orderCreateInfo, useEvent, useProductStore } from "../../store/event";
 import axios from "axios";
 import Loader from "../loader";
-import { CircleX, Send } from "lucide-react";
+import { CircleX, Send, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
 
 export default function OrderDialog() {
   const [isOpen, setIsOpen] = useState(false); // State to manage dialog open/close
   const { products, initializeProducts, resetProduct } = useProductStore();
   const { orderData, setOrderData } = orderCreateInfo();
   const [isLoading, setIsLoading] = useState(false);
+  const { spotsData } = useEvent();
+  const [open, setOpen] = useState(false);
+
+  const handleResetOrder = () => {
+    setIsOpen(false);
+    setOpen(false);
+    setOrderData({
+      spot_id: 0,
+      phone: "",
+      products: [],
+      service_mode: 3,
+      total: 0,
+      client: {},
+      pay_bonus: 0,
+      pay_sum: 0,
+    });
+    localStorage.setItem("products", []);
+    resetProduct();
+  };
 
   const handleOpen = () => {
     setOrderData({
@@ -35,6 +64,17 @@ export default function OrderDialog() {
     }
   };
 
+  const formatCreatedAt = () => {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, "0");
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // Oylar 0 dan boshlanadi
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+  };
+
   const handleSubmitOrder = async () => {
     if (orderData.spot_id == 0) {
       toast.error("Вы не выбрали точку доставки!");
@@ -45,31 +85,48 @@ export default function OrderDialog() {
     } else {
       try {
         setIsLoading(true);
-        const { spot_id, products, service_mode, client } = orderData;
+        const { spot_id, products, service_mode, client, total } = orderData;
 
         const filterProducts = products?.map((p) => {
           return {
             product_id: +p.product_id,
-            count: +p.count,
+            amount: +p.count,
           };
         });
-
+        const spotName = spotsData?.find(
+          (spot) => spot.spot_id == spot_id
+        )?.name;
         let filterOrderData = {
-          phone: client?.phone_number,
-          products: filterProducts,
-          service_mode: Number(service_mode),
+          address_comment: "",
+          all_price: Number(total * 100),
+          client_address: "41.311300,69.279773",
+          client_id: Number(client?.client_id),
+          comment: "no",
+          created_at: formatCreatedAt(),
+          payed_bonus: orderData?.pay_bonus
+            ? Number(orderData?.pay_bonus) * 100
+            : 0,
+          payed_sum: Number(orderData?.pay_sum * 100),
+          payment: "cash",
+          phone: `+${client?.phone_number}`,
+          products: JSON.stringify(filterProducts),
+          promotion: "no",
           spot_id: Number(spot_id),
+          status: "accept",
+          type: service_mode == 3 ? "delivery" : `take_away ${spotName}`,
         };
+        console.log(JSON.stringify(filterOrderData));
 
-        console.log(filterOrderData);
-
+        // return null
         if (filterOrderData) {
           const res = await axios.post(
-            `${import.meta.env.VITE_API}/api/posttoposter`,
+            `${import.meta.env.VITE_BACK}/add_order`,
             filterOrderData
           );
           if (res) {
             setIsOpen(false);
+            console.log(res);
+
             toast.success("Заказ успешно отправлен!");
             setOrderData({
               spot_id: 0,
@@ -78,9 +135,12 @@ export default function OrderDialog() {
               service_mode: 3,
               total: 0,
               client: {},
+              pay_bonus: 0,
+              pay_sum: 0,
             });
             localStorage.setItem("products", []);
             resetProduct();
+            setOpen(false);
           }
         }
       } catch (error) {
@@ -151,6 +211,7 @@ export default function OrderDialog() {
       setOrderData({
         ...orderData,
         total: activeNoDiscountProductsTotal,
+        pay_sum: activeNoDiscountProductsTotal,
       });
     };
 
@@ -175,13 +236,7 @@ export default function OrderDialog() {
         </section>
       </DialogTrigger>
       <DialogContent className="bg-white h-screen max-w-11/12 max-h-screen bg-transparent p-0 border-0 rounded-none overflow-y-scroll no-scrollbar">
-        {/* {loading ? (
-          <div className="flex justify-center items-center gap-2">
-            <Loader />
-            <p className="text-center textNormal2 text-thin">Загрузка...</p>
-          </div>
-        ) : ( */}
-        <main className="bg-white my-auto rounded-md flex justify-center overflow-hidden items-center flex-col p-4 w-[70%] max-h-[calc(100vh-20px)] mx-auto bg-background space-y-2">
+        <main className="bg-white my-auto rounded-md flex justify-center overflow-hidden items-center flex-col p-4 w-[70%] max-h-[calc(100vh-20px)] mx-auto bg-background space-y-3">
           <DialogHeader>
             <DialogTitle asChild>
               <h1 className="textNormal1 text-thin text-center">Новый заказ</h1>
@@ -190,11 +245,10 @@ export default function OrderDialog() {
           </DialogHeader>
           <main className="w-full min-w-full grid grid-cols-3 gap-3">
             <OrderCheck products={products} />
-            {/* <OrderMap branches={branches} /> */}
             <TotalInfo />
             <SelectSpots />
           </main>
-          <section className="w-full col-span-8 flex justify-center items-center gap-2">
+          <section className="w-full col-span-8 flex justify-end items-center gap-2 pt-4">
             <Button
               disabled={isLoading}
               onClick={handleSubmitOrder}
@@ -209,9 +263,50 @@ export default function OrderDialog() {
               className="bg-white hover:bg-white border-[1px] shadow-sm flex justify-start items-center gap-2 w-40"
               onClick={() => setIsOpen(false)} // Close dialog on cancel
             >
-              <CircleX size={32}  className="text-red-600"/>{" "}
+              <CircleX size={32} className="text-red-600" />{" "}
               <h1 className="textSmall2 text-red-600 font-bold">Отмена</h1>
             </Button>
+            <AlertDialog
+              open={open}
+              onOpenChange={setOpen}
+              className="z-[9999] max-w-11/12 mx-auto"
+            >
+              <AlertDialogTrigger asChild>
+                <Button
+                  className="bg-red-500 hover:bg-red-400 border-[1px] shadow-sm flex justify-start items-center gap-2"
+                  onClick={() => setOpen(true)} // Close dialog on cancel
+                >
+                  <Trash2 className="text-white" />
+                  <h1 className="textSmall2 text-white font-bold">
+                    Закрыть без оплаты
+                  </h1>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="z-[1000] rounded-md w-11/12 mx-auto bg-white">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Вы уверены, что хотите выполнить заказ?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Если вы действительно хотите выполнить заказ, нажмите кнопку
+                    «Продолжить».
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setOpen(false)}>
+                    Отмена
+                  </AlertDialogCancel>
+
+                  <Button
+                    disabled={isLoading}
+                    className="hover:bg-primary text-white"
+                    onClick={handleResetOrder}
+                  >
+                    Продолжить
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </section>
         </main>
         {/* )} */}
@@ -437,6 +532,12 @@ const OrderCheck = () => {
             <p>{client?.firstname + " " + client?.lastname}</p>
           </div>
         </li>
+        <li className="border-border pt-2 flex justify-between items-center gap-3">
+          <h1 className="col-span-1">Клиент bonus:</h1>
+          <div className="col-span-2 flex flex-col gap-2 justify-start items-center">
+            <p>{orderData?.client?.bonus / 100} сум</p>
+          </div>
+        </li>
         <li className="flex justify-between items-center gap-3">
           <h1 className="col-span-1">Номер телефона:</h1>
           <div className="col-span-2 flex flex-col gap-2 justify-start items-center">
@@ -460,8 +561,21 @@ const TotalInfo = () => {
     { type: 3, title: "Доставка" },
   ];
 
+  useEffect(() => {
+    if (orderData?.client?.bonus / 100) {
+      setOrderData({
+        ...orderData,
+        pay_sum: Math.max(0, +orderData?.total - +orderData?.pay_bonus),
+        pay_bonus: Math.min(
+          +orderData?.client?.bonus / 100,
+          +orderData?.pay_bonus
+        ),
+      });
+    }
+  }, [orderData?.pay_bonus]);
+
   return (
-    <main className="col-span-1 h-full flex flex-col justify-start gap-3 shadow-custom p-4">
+    <main className="col-span-1 h-full flex flex-col justify-between gap-3 shadow-custom p-4">
       <section className="w-full space-y-2">
         {serviceMode?.map((service, i) => (
           <Button
@@ -479,6 +593,36 @@ const TotalInfo = () => {
             <h1 className="textSmall2">{service.title}</h1>
           </Button>
         ))}
+      </section>
+      <section>
+        {orderData?.client?.bonus / 100 > 0 && (
+          <div className="space-y-3 px-2" >
+            <div className="grid grid-cols-4 space-x-2">
+              <label className="col-span-1 w-full flex justify-center items-center textSmall2 text-thin-secondary">Наличные</label>
+              <input
+                type="number"
+                value={Number(orderData?.pay_sum)}
+                onChange={(e) =>
+                  setOrderData({ ...orderData, pay_sum: e.target.value })
+                }
+                className="col-span-3 border p-2 rounded-md w-full"
+                placeholder="Введите сумму"
+              />
+            </div>
+            <div className="grid grid-cols-4 space-x-2">
+              <label className="col-span-1 w-full flex justify-center items-center textSmall2 text-thin-secondary">Бонус</label>
+              <input
+                type="number"
+                value={orderData?.pay_bonus == 0 ? null : orderData.pay_bonus}
+                onChange={(e) =>
+                  setOrderData({ ...orderData, pay_bonus: e.target.value })
+                }
+                className="col-span-3 border p-2 rounded-md w-full"
+                placeholder="Введите сумму"
+              />
+            </div>
+          </div>
+        )}
       </section>
       <section className="w-full space-y-3">
         <div className="space-y-1 border-b-[1px] py-1">
@@ -501,7 +645,6 @@ const TotalInfo = () => {
 const SelectSpots = () => {
   const { orderData, setOrderData } = orderCreateInfo();
   const { spotsData } = useEvent();
-  console.log(spotsData);
 
   return (
     <main className="h-col-span-1 h-full flex flex-col justify-between gap-3 shadow-custom px-4">

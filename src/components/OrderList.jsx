@@ -20,7 +20,7 @@ const OrderList = ({ orders }) => {
         </tr>
       </thead>
       <tbody>
-        {orders.map((item, idx) => (
+        {orders?.map((item, idx) => (
           <tr key={idx} className={`relative border-b-2`}>
             <td className="p-5">{idx + 1}</td>
             <td className="p-5">

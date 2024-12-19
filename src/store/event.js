@@ -23,6 +23,8 @@ export const orderCreateInfo = create((set) => ({
     service_mode: 3,
     total: 0,
     client: null,
+    pay_bonus:0,
+    pay_sum: 0,
   },
   setOrderData: (data) => set(() => ({ orderData: data })),
 }));
