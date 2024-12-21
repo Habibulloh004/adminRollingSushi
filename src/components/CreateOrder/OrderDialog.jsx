@@ -87,7 +87,13 @@ export default function OrderDialog() {
         setIsLoading(true);
         const { spot_id, products, service_mode, client, total } = orderData;
 
-        const filterProducts = products?.map((p) => {
+        const filterProductsExpress = products?.map((p) => {
+          return {
+            product_id: +p.product_id,
+            count: +p.count,
+          };
+        });
+        const filterProductsAbdugani = products?.map((p) => {
           return {
             product_id: +p.product_id,
             amount: +p.count,
@@ -96,7 +102,11 @@ export default function OrderDialog() {
         const spotName = spotsData?.find(
           (spot) => spot.spot_id == spot_id
         )?.name;
-        let filterOrderData = {
+        const clinetAddress = orderData?.client?.addresses?.find(
+          (address) => address?.id == orderData?.client?.client_address_id
+        );
+
+        let filterOrderDataAbdugani = {
           address_comment: "",
           all_price: Number(total * 100),
           client_address: "41.311300,69.279773",
@@ -109,24 +119,42 @@ export default function OrderDialog() {
           payed_sum: Number(orderData?.pay_sum * 100),
           payment: "cash",
           phone: `+${client?.phone_number}`,
-          products: JSON.stringify(filterProducts),
+          products: JSON.stringify(filterProductsAbdugani),
           promotion: "no",
           spot_id: Number(spot_id),
           status: "accept",
           type: service_mode == 3 ? "delivery" : `take_away ${spotName}`,
         };
-        console.log(JSON.stringify(filterOrderData));
+        let filterOrderDataExpress = {
+          phone: client?.phone_number,
+          products: filterProductsExpress,
+          service_mode: Number(service_mode),
+          spot_id: Number(spot_id),
+        };
+        if (clinetAddress) {
+          filterOrderDataAbdugani.address_comment = clinetAddress?.address1;
+          filterOrderDataExpress.client_address_id =
+            orderData?.client?.client_address_id;
+        } else {
+          filterOrderDataAbdugani.address_comment = orderData?.address1;
+          filterOrderDataExpress.address = orderData?.address1;
+        }
+        console.log(filterOrderDataAbdugani);
+        console.log(filterOrderDataExpress);
 
-        // return null
-        if (filterOrderData) {
-          const res = await axios.post(
+        if (filterOrderDataAbdugani) {
+          const abdugani = await axios.post(
             `${import.meta.env.VITE_BACK}/add_order`,
-            filterOrderData
+            filterOrderDataAbdugani
           );
-          if (res) {
-            setIsOpen(false);
-            console.log(res);
+          const express = await axios.post(
+            `${import.meta.env.VITE_API}/api/posttoposter`,
+            filterOrderDataExpress
+          );
+          console.log(JSON.stringify(filterOrderDataExpress));
 
+          if (abdugani && express) {
+            setIsOpen(false);
             toast.success("Заказ успешно отправлен!");
             setOrderData({
               spot_id: 0,
@@ -151,7 +179,7 @@ export default function OrderDialog() {
       }
     }
   };
-
+  
   const calculateProductTotal = (product, active) => {
     let total = 0;
 
@@ -235,8 +263,8 @@ export default function OrderDialog() {
           </Button>
         </section>
       </DialogTrigger>
-      <DialogContent className="bg-white h-screen max-w-11/12 max-h-screen bg-transparent p-0 border-0 rounded-none overflow-y-scroll no-scrollbar">
-        <main className="bg-white my-auto rounded-md flex justify-center overflow-hidden items-center flex-col p-4 w-[70%] max-h-[calc(100vh-20px)] mx-auto bg-background space-y-3">
+      <DialogContent className="bg-white h-screen max-w-11/12 bg-transparent p-0 border-0 rounded-none overflow-y-scroll no-scrollbar">
+        <main className="bg-white my-auto rounded-md flex justify-center overflow-hidden items-center flex-col p-4 w-[70%] mx-auto bg-background space-y-3">
           <DialogHeader>
             <DialogTitle asChild>
               <h1 className="textNormal1 text-thin text-center">Новый заказ</h1>
@@ -315,142 +343,8 @@ export default function OrderDialog() {
   );
 }
 
-// const OrderMap = ({ branches }) => {
-//   const { orderData, setOrderData } = orderCreateInfo();
-//   const defaultCoordinates = [41.311158, 69.279737];
-//   const [coordinates, setCoordinates] = useState(defaultCoordinates); // Marker coordinates
-//   const [mapCenter, setMapCenter] = useState(defaultCoordinates); // Map center coordinates
-//   const [mapZoom, setMapZoom] = useState(10);
-
-//   const handleAddBranch = (branch) => {
-//     setOrderData({
-//       ...orderData,
-//       spot_id: branch?.spot_id,
-//       spot_name: branch?.name,
-//     });
-//   };
-
-//   useEffect(() => {
-//     const { latitude, longitude } = orderData.location;
-//     if (latitude !== 0 && longitude !== 0) {
-//       setCoordinates([latitude, longitude]);
-//       setMapCenter([latitude, longitude]);
-//     } else {
-//       setMapCenter([41.311158, 69.279737]);
-//       setCoordinates(null);
-//     }
-//   }, []);
-
-//   return (
-//     <main className="col-span-3 space-y-2">
-//       <section className="shadow-custom p-4">
-//         <h1 className="text-center font-bold text-thin">Локация</h1>
-//         <div className="relative border-border border-2 rounded-md h-[350px] w-full">
-//           <YMaps query={{ apikey: apiKeyYandex }}>
-//             <Map
-//               width="100%"
-//               height="100%"
-//               state={{ center: mapCenter, zoom: mapZoom }}
-//             >
-//               {coordinates && (
-//                 <Placemark
-//                   geometry={coordinates}
-//                   options={{
-//                     iconLayout: "default#image",
-//                     iconImageHref:
-//                       "https://fkkpuaszmvpxjoqqmlzx.supabase.co/storage/v1/object/public/wassabi/1365700-removebg-preview.png",
-//                     iconImageSize: [40, 40],
-//                     iconImageOffset: [-20, -40],
-//                   }}
-//                   properties={{
-//                     balloonContentHeader: `Клиент с адресом`,
-//                     balloonContentBody: `<div>${`Клиент с адресом`}</div>`,
-//                     hintContent: `Клиент с адресом`,
-//                   }}
-//                   modules={["geoObject.addon.balloon", "geoObject.addon.hint"]}
-//                 />
-//               )}
-//               {branches.length > 0 && (
-//                 <>
-//                   {branches.map((branch, idx) => (
-//                     <Placemark
-//                       key={idx}
-//                       onClick={() => {
-//                         setOrderData({
-//                           ...orderData,
-//                           spot_id: branch?.spot_id,
-//                         });
-//                       }}
-//                       geometry={[+branch?.lat, +branch?.lng]}
-//                       options={{
-//                         iconLayout: "default#image",
-//                         iconImageHref:
-//                           branch?.spot_id == orderData?.spot_id
-//                             ? "https://fkkpuaszmvpxjoqqmlzx.supabase.co/storage/v1/object/public/wassabi/wassabi-location.png"
-//                             : "https://fkkpuaszmvpxjoqqmlzx.supabase.co/storage/v1/object/public/wassabi/food.png", // Ensure this path is correct
-//                         iconImageSize:
-//                           branch?.spot_id == orderData?.spot_id
-//                             ? [40, 40]
-//                             : [35, 35], // Make sure these sizes are appropriate for your image
-//                         iconImageOffset:
-//                           branch?.spot_id == orderData?.spot_id
-//                             ? [-20, -20]
-//                             : [-17.5, -17.5], // Adjust if necessary
-//                       }}
-//                       properties={{
-//                         balloonContentHeader: branch.name,
-//                         balloonContentBody: `<div>${branch.name}</div>`,
-//                         hintContent: branch.name,
-//                       }}
-//                       modules={[
-//                         "geoObject.addon.balloon",
-//                         "geoObject.addon.hint",
-//                       ]}
-//                     />
-//                   ))}
-//                 </>
-//               )}
-//               <ZoomControl options={{ float: "right" }} />
-//             </Map>
-//           </YMaps>
-//         </div>
-//       </section>
-//       <section className="shadow-custom p-4 space-y-2">
-//         <h1 className="text-center font-bold text-thin">Выбрать филиал</h1>
-//         <div className="px-2 flex flex-col gap-2 max-h-[110px] overflow-y-scroll">
-//           {branches?.map((item, i) => (
-//             <div
-//               onClick={() => handleAddBranch(item)}
-//               key={i}
-//               className={`${
-//                 +item?.spot_id == +orderData?.spot_id
-//                   ? "bg-primary"
-//                   : "bg-thin-secondary"
-//               } py-1 px-2 rounded-md cursor-pointer text-white border-border w-full flex justify-between items-center gap-3 `}
-//             >
-//               <h1 className="textSmall2 border-r-2 w-3/4">{item?.name}</h1>
-//               <p className="w-1/4 text-center textSmall1">
-//                 <span className="textSmall3">
-//                   {
-//                     orders?.filter(
-//                       (c) =>
-//                         +c.spot_id == +item?.spot_id && c.status == "cooking"
-//                     )?.length
-//                   }{" "}
-//                 </span>{" "}
-//                 <br />
-//                 Кол.ож. заказ
-//               </p>
-//             </div>
-//           ))}
-//         </div>
-//       </section>
-//     </main>
-//   );
-// };
-
 const OrderCheck = () => {
-  const { orderData } = orderCreateInfo();
+  const { orderData, setOrderData } = orderCreateInfo();
   const { client, products } = orderData;
 
   return (
@@ -472,7 +366,7 @@ const OrderCheck = () => {
           <tr>
             <td colSpan="4" className="p-0">
               <div
-                className="overflow-y-auto max-h-[400px]"
+                className="overflow-y-auto max-h-[250px]"
                 style={{ display: "block" }}
               >
                 <table className="w-full">
@@ -530,6 +424,20 @@ const OrderCheck = () => {
           <h1 className="col-span-1">Клиент:</h1>
           <div className="col-span-2 flex flex-col gap-2 justify-start items-center">
             <p>{client?.firstname + " " + client?.lastname}</p>
+          </div>
+        </li>
+        <li className="border-border flex justify-between items-center gap-3">
+          <h1 className="col-span-1">Клиент адрес:</h1>
+          <div className="col-span-2 flex flex-col gap-2 justify-start items-center">
+            <input
+              type="text"
+              className="w-full px-2 py-1 rounded-md border border-border "
+              placeholder="Дополнительный адрес"
+              value={orderData?.address1}
+              onChange={(e) =>
+                setOrderData({ ...orderData, address1: e.target.value })
+              }
+            />
           </div>
         </li>
         <li className="border-border pt-2 flex justify-between items-center gap-3">
@@ -596,9 +504,11 @@ const TotalInfo = () => {
       </section>
       <section>
         {orderData?.client?.bonus / 100 > 0 && (
-          <div className="space-y-3 px-2" >
+          <div className="space-y-3 px-2">
             <div className="grid grid-cols-4 space-x-2">
-              <label className="col-span-1 w-full flex justify-center items-center textSmall2 text-thin-secondary">Наличные</label>
+              <label className="col-span-1 w-full flex justify-center items-center textSmall2 text-thin-secondary">
+                Наличные
+              </label>
               <input
                 type="number"
                 value={Number(orderData?.pay_sum)}
@@ -610,7 +520,9 @@ const TotalInfo = () => {
               />
             </div>
             <div className="grid grid-cols-4 space-x-2">
-              <label className="col-span-1 w-full flex justify-center items-center textSmall2 text-thin-secondary">Бонус</label>
+              <label className="col-span-1 w-full flex justify-center items-center textSmall2 text-thin-secondary">
+                Бонус
+              </label>
               <input
                 type="number"
                 value={orderData?.pay_bonus == 0 ? null : orderData.pay_bonus}
@@ -645,10 +557,11 @@ const TotalInfo = () => {
 const SelectSpots = () => {
   const { orderData, setOrderData } = orderCreateInfo();
   const { spotsData } = useEvent();
+  const clientData = orderData?.client;
 
   return (
     <main className="h-col-span-1 h-full flex flex-col justify-between gap-3 shadow-custom px-4">
-      <section className="h-full w-full space-y-2">
+      <section className="w-full space-y-2">
         {spotsData?.map((spot, i) => (
           <Button
             type="ghost"
@@ -665,6 +578,40 @@ const SelectSpots = () => {
             <h1 className="textSmall2">{spot.name}</h1>
           </Button>
         ))}
+      </section>
+      <section className="max-h-[200px] overflow-y-scroll">
+        {clientData?.addresses?.length > 0 && (
+          <div className="space-y-2">
+            {clientData?.addresses?.map((address) => {
+              if (!address?.address1) {
+                return null;
+              }
+              return (
+                <div
+                  onClick={() => {
+                    setOrderData({
+                      ...orderData,
+                      client: {
+                        ...orderData?.client,
+                        client_address_id: address?.id,
+                      },
+                    });
+                  }}
+                  key={address?.id}
+                  className={`${
+                    address.id == orderData?.client?.client_address_id
+                      ? "bg-primary/10"
+                      : ""
+                  } cursor-pointer w-full px-2 py-1 rounded-md border border-border`}
+                >
+                  <h1 className="textSmall1">
+                    <span>Адрес:</span> {address?.address1}
+                  </h1>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
       <div className="space-y-2 py-1">
         <h1 className="textSmall2 text-thin-secondary border-b py-1">

@@ -16,12 +16,12 @@ export default function ProductItem(props) {
       {href == "none" ? (
         <main className="h-full bg-white shadow-md p-4 rounded-md space-y-2 flex flex-col justify-between items-between">
           <div className="cursor-pointer flex justify-between items-between gap-2">
-            <h1 className="font-bold textNormal1 text-start">
-              {truncateText(title, 30)}
+            <h1 className="font-bold textSmall2 text-start">
+              {truncateText(title, 20)}
             </h1>
             <Plus className="text-gray-500" />
           </div>
-          <div className="relative w-full min-h-20 h-full">
+          <div className="relative w-full min-h-20 overflow-hidden h-full">
             <img
               className={" object-cover h-full w-full"}
               src={imageUrl}
@@ -35,14 +35,14 @@ export default function ProductItem(props) {
           className="bg-white p-4 rounded-md shadow-md space-y-2 flex flex-col justify-between items-between"
         >
           <div className="cursor-pointer flex justify-between items-between gap-2">
-            <h1 className="font-bold textNormal1 text-start">
-              {truncateText(orgTitle, 30)}
+            <h1 className="font-bold textSmall2 text-start">
+              {truncateText(orgTitle, 20)}
             </h1>
             <div className="w-4">
               <ChevronRight className="text-gray-500" />
             </div>
           </div>
-          <div className="relative w-full min-h-20 h-full">
+          <div className="relative w-full min-h-20 overflow-hidden h-full">
             <img
               className={"object-cover h-full w-full"}
               src={imageUrl}
