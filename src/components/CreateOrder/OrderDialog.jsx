@@ -141,7 +141,6 @@ export default function OrderDialog() {
         }
         console.log(filterOrderDataAbdugani);
         console.log(filterOrderDataExpress);
-
         if (filterOrderDataAbdugani) {
           const abdugani = await axios.post(
             `${import.meta.env.VITE_BACK}/add_order`,
@@ -151,7 +150,6 @@ export default function OrderDialog() {
             `${import.meta.env.VITE_API}/api/posttoposter`,
             filterOrderDataExpress
           );
-          console.log(JSON.stringify(filterOrderDataExpress));
 
           if (abdugani && express) {
             setIsOpen(false);
@@ -169,6 +167,7 @@ export default function OrderDialog() {
             localStorage.setItem("products", []);
             resetProduct();
             setOpen(false);
+            console.log({ abdugani, express });
           }
         }
       } catch (error) {
@@ -179,7 +178,7 @@ export default function OrderDialog() {
       }
     }
   };
-  
+
   const calculateProductTotal = (product, active) => {
     let total = 0;
 
@@ -433,7 +432,7 @@ const OrderCheck = () => {
               type="text"
               className="w-full px-2 py-1 rounded-md border border-border "
               placeholder="Дополнительный адрес"
-              value={orderData?.address1}
+              value={orderData?.address1 || ""}
               onChange={(e) =>
                 setOrderData({ ...orderData, address1: e.target.value })
               }
@@ -511,7 +510,7 @@ const TotalInfo = () => {
               </label>
               <input
                 type="number"
-                value={Number(orderData?.pay_sum)}
+                value={Number(orderData?.pay_sum) || ""}
                 onChange={(e) =>
                   setOrderData({ ...orderData, pay_sum: e.target.value })
                 }
@@ -582,34 +581,37 @@ const SelectSpots = () => {
       <section className="max-h-[200px] overflow-y-scroll">
         {clientData?.addresses?.length > 0 && (
           <div className="space-y-2">
-            {clientData?.addresses?.map((address) => {
-              if (!address?.address1) {
-                return null;
-              }
-              return (
-                <div
-                  onClick={() => {
-                    setOrderData({
-                      ...orderData,
-                      client: {
-                        ...orderData?.client,
-                        client_address_id: address?.id,
-                      },
-                    });
-                  }}
-                  key={address?.id}
-                  className={`${
-                    address.id == orderData?.client?.client_address_id
-                      ? "bg-primary/10"
-                      : ""
-                  } cursor-pointer w-full px-2 py-1 rounded-md border border-border`}
-                >
-                  <h1 className="textSmall1">
-                    <span>Адрес:</span> {address?.address1}
-                  </h1>
-                </div>
-              );
-            })}
+            {clientData?.addresses
+              ?.slice()
+              ?.reverse()
+              ?.map((address) => {
+                if (!address?.address1) {
+                  return null;
+                }
+                return (
+                  <div
+                    onClick={() => {
+                      setOrderData({
+                        ...orderData,
+                        client: {
+                          ...orderData?.client,
+                          client_address_id: address?.id,
+                        },
+                      });
+                    }}
+                    key={address?.id}
+                    className={`${
+                      address.id == orderData?.client?.client_address_id
+                        ? "bg-primary/10"
+                        : ""
+                    } cursor-pointer w-full px-2 py-1 rounded-md border border-border`}
+                  >
+                    <h1 className="textSmall1">
+                      <span>Адрес:</span> {address?.address1}
+                    </h1>
+                  </div>
+                );
+              })}
           </div>
         )}
       </section>
