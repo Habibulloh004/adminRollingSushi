@@ -12,6 +12,7 @@ const OrderItem = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   // const { socketMe } = useSocketContext();
+  // eslint-disable-next-line no-unused-vars
   const [parsedOrder, setParsedOrder] = useState([]);
   const [checkedItem, setCheckedItem] = useState(null);
   const [orderItem, setOrderItem] = useState(null);
