@@ -173,86 +173,95 @@ export default function OrderDialog() {
             `${import.meta.env.VITE_BACK}/add_order`,
             filterOrderDataAbdugani
           );
-          const express = await axios.post(
-            `${import.meta.env.VITE_API}/api/posttoposter`,
-            filterOrderDataExpress
-          );
+          console.log(abdugani.data.order_id);
 
-          if (abdugani && express && clientOrders) {
-            const message = `
-📦 Новый заказ! №${abdugani?.data?.order_id}
-🛒 Название филиал: ${checkedItem.name}
-📞 Телефон: ${filterOrderDataAbdugani.phone}
-🏠 Адрес: ${filterOrderDataAbdugani?.address || "Не указан"}
-🔗 [Посмотреть на карте] ${yandexMapsLink ? yandexMapsLink : "Не указан"}
-🗺️ Расстояние: ${
-              orderAddress
-                ? (
-                    getDistance(
-                      {
-                        latitude: checkedItem?.lat,
-                        longitude: checkedItem?.lng,
-                      },
-                      orderAddress
-                    ) / 1000
-                  ).toFixed(1)
-                : "0"
-            } км
-💵 Сумма заказа: ${f(filterOrderDataAbdugani?.all_price / 100)} сум
-💳 Метод оплаты: ${
-              filterOrderDataAbdugani?.payment === "cash"
-                ? "Наличные"
-                : filterOrderDataAbdugani?.payment === "creditCard"
-                ? "Карта (Оплачено)"
-                : "Карта (Не оплачено)"
-            }
-🎁 Бонусы: ${f(filterOrderDataAbdugani?.payed_bonus / 100)} сум
-💵 К оплате: ${f(filterOrderDataAbdugani?.payed_sum / 100)} сум
-🛍 Тип заказа: ${
-              filterOrderDataAbdugani?.type === "delivery"
-                ? "Доставка"
-                : filterOrderDataAbdugani?.type.startsWith("take_away")
-                ? `На вынос (${filterOrderDataAbdugani?.type.replace(
-                    /^take_away\s*/,
-                    ""
-                  )})`
-                : "Доставка"
-            }
-🚚 Доставка: 0
-📦 Количество заказов: ${clientOrders}
-✏️ Комментарий к адресу: ${
-              filterOrderDataAbdugani?.address_comment || "Не указан"
-            }`.trim();
-
-            // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
-
-            // Send message to Telegram
-
-            console.log(message);
-
-            const tgRes = await axios.get(
-              `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
-                message
-              )}`
+          if (abdugani.data.order_id) {
+            const express = await axios.post(
+              `${import.meta.env.VITE_API}/api/posttoposter`,
+              {
+                ...filterOrderDataExpress,
+                comment: JSON.stringify({
+                  order_id: abdugani.data.order_id,
+                }),
+              }
             );
-            console.log(tgRes);
 
-            setIsOpen(false);
-            toast.success("Заказ успешно отправлен!");
-            setOrderData({
-              spot_id: 0,
-              phone: "",
-              products: [],
-              service_mode: 3,
-              total: 0,
-              client: {},
-              pay_bonus: 0,
-              pay_sum: 0,
-            });
-            localStorage.setItem("products", []);
-            resetProduct();
-            setOpen(false);
-            console.log({ abdugani, express });
+            if (abdugani && express && clientOrders) {
+              const message = `
+  📦 Новый заказ! №${abdugani?.data?.order_id}
+  🛒 Название филиал: ${checkedItem.name}
+  📞 Телефон: ${filterOrderDataAbdugani.phone}
+  🏠 Адрес: ${filterOrderDataAbdugani?.address || "Не указан"}
+  🔗 [Посмотреть на карте] ${yandexMapsLink ? yandexMapsLink : "Не указан"}
+  🗺️ Расстояние: ${
+    orderAddress
+      ? (
+          getDistance(
+            {
+              latitude: checkedItem?.lat,
+              longitude: checkedItem?.lng,
+            },
+            orderAddress
+          ) / 1000
+        ).toFixed(1)
+      : "0"
+  } км
+  💵 Сумма заказа: ${f(filterOrderDataAbdugani?.all_price / 100)} сум
+  💳 Метод оплаты: ${
+    filterOrderDataAbdugani?.payment === "cash"
+      ? "Наличные"
+      : filterOrderDataAbdugani?.payment === "creditCard"
+      ? "Карта (Оплачено)"
+      : "Карта (Не оплачено)"
+  }
+  🎁 Бонусы: ${f(filterOrderDataAbdugani?.payed_bonus / 100)} сум
+  💵 К оплате: ${f(filterOrderDataAbdugani?.payed_sum / 100)} сум
+  🛍 Тип заказа: ${
+    filterOrderDataAbdugani?.type === "delivery"
+      ? "Доставка"
+      : filterOrderDataAbdugani?.type.startsWith("take_away")
+      ? `На вынос (${filterOrderDataAbdugani?.type.replace(
+          /^take_away\s*/,
+          ""
+        )})`
+      : "Доставка"
+  }
+  🚚 Доставка: 0
+  📦 Количество заказов: ${clientOrders}
+  ✏️ Комментарий к адресу: ${
+    filterOrderDataAbdugani?.address_comment || "Не указан"
+  }`.trim();
+
+              // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
+
+              // Send message to Telegram
+
+              console.log(message);
+
+              const tgRes = await axios.get(
+                `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
+                  message
+                )}`
+              );
+              console.log(tgRes);
+
+              setIsOpen(false);
+              toast.success("Заказ успешно отправлен!");
+              setOrderData({
+                spot_id: 0,
+                phone: "",
+                products: [],
+                service_mode: 3,
+                total: 0,
+                client: {},
+                pay_bonus: 0,
+                pay_sum: 0,
+              });
+              localStorage.setItem("products", []);
+              resetProduct();
+              setOpen(false);
+              console.log({ abdugani, express });
+            }
           }
         }
       } catch (error) {
