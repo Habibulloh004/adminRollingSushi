@@ -7,7 +7,7 @@ import { useEvent } from "./store/event";
 // import Login from "./pages/Login";
 // import Orders from "./pages/Orders";
 
-const Layout = lazy(() => import("./Layout"));
+const   Layout = lazy(() => import("./Layout"));
 const Login = lazy(() => import("./pages/Login"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Branches = lazy(() => import("./pages/Branches"));
