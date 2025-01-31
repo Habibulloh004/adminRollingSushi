@@ -1,75 +1,55 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 function News() {
   const [open, setOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("en"); // Выбранный язык
   const [formData, setFormData] = useState({
-    title: { en: "", ru: "", uz: "" },
-    subTitle: { en: "", ru: "", uz: "" },
+    en: { title: "", body: "" },
+    ru: { title: "", body: "" },
+    uz: { title: "", body: "" },
   });
 
   const [news, setNews] = useState([]);
 
   const fetchNews = async () => {
     const { data } = await axios.get(`${import.meta.env.VITE_API}/getNews`);
-    console.log(data);
     setNews(data);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    console.log("Отправка данных:", formData);
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_API}/createNews`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to submit the form");
-      }
-
-      const data = await response.json();
-      console.log("Server response:", data);
+      const response = await axios.post(
+        `${import.meta.env.VITE_API}/createNews`,
+        formData
+      );
+      console.log("Server response:", response.data);
       setFormData({
-        title: { en: "", ru: "", uz: "" },
-        subTitle: { en: "", ru: "", uz: "" },
+        en: { title: "", body: "" },
+        ru: { title: "", body: "" },
+        uz: { title: "", body: "" },
       });
+      fetchNews(); // Перезагрузка новостей после отправки
     } catch (error) {
-      // console.error("Error submitting form:", error);
+      console.error("Ошибка при отправке формы:", error);
     }
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-
-  //   try {
-  //     const response = await fetch(`${import.meta.env.VITE_API}/createNews`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(formData),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to submit the form");
-  //     }
-
-  //     const data = await response.json();
-  //     console.log("Server response:", data);
-  //     setFormData({ title: "", subTitle: "" }); // Reset form
-  //   } catch (error) {
-  //     console.error("Error submitting form:", error);
-  //   }
-  // };
-
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     setNews((prev) => prev.filter((item) => item._id !== id));
-    axios.delete(`${import.meta.env.VITE_API}/deleteNews/${id}`);
+    const res = await axios.delete(
+      `${import.meta.env.VITE_API}/deleteNews/${id}`
+    );
+    console.log(res);
+    if (res.status == 200) {
+      toast.success("Уведомление успешно удалено!");
+      return;
+    }
+    toast.error("Что-то пошло не так! Попробуйте еще раз!");
   };
 
   useEffect(() => {
@@ -83,9 +63,7 @@ function News() {
           className={`py-2 cursor-pointer px-4 rounded-md ${
             open ? "bg-white/50" : "bg-primary/90 text-white"
           }`}
-          onClick={() => {
-            setOpen((prev) => !prev);
-          }}
+          onClick={() => setOpen(false)}
         >
           Создать
         </li>
@@ -93,126 +71,54 @@ function News() {
           className={`py-2 cursor-pointer px-4 rounded-md ${
             !open ? "bg-white/50" : "bg-primary/90 text-white"
           }`}
-          onClick={() => {
-            setOpen((prev) => !prev);
-          }}
+          onClick={() => setOpen(true)}
         >
           Смотреть
         </li>
       </ul>
+
       {!open ? (
         <div className="w-1/2 p-4 border border-gray-300 rounded-md shadow-md">
           <h2 className="text-lg font-semibold mb-4">Отправить данные</h2>
           <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">
-                Title (UZ)
-              </label>
-              <input
-                type="text"
-                name="title.uz"
-                value={formData.title.uz}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    title: { ...prev.title, uz: e.target.value },
-                  }))
-                }
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">
-                Subtitle (UZ)
-              </label>
-              <textarea
-                name="subTitle.uz"
-                value={formData.subTitle.uz}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    subTitle: { ...prev.subTitle, uz: e.target.value },
-                  }))
-                }
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              ></textarea>
-            </div>
+            {["uz", "ru", "en"].map((lang) => (
+              <div key={lang}>
+                <div className="mb-4">
+                  <label className="block mb-1 text-sm font-medium">
+                    Title ({lang.toUpperCase()})
+                  </label>
+                  <input
+                    type="text"
+                    value={formData[lang].title}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        [lang]: { ...prev[lang], title: e.target.value },
+                      }))
+                    }
+                    className="w-full p-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
 
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">
-                Title (RU)
-              </label>
-              <input
-                type="text"
-                name="title.ru"
-                value={formData.title.ru}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    title: { ...prev.title, ru: e.target.value },
-                  }))
-                }
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">
-                Subtitle (RU)
-              </label>
-              <textarea
-                name="subTitle.ru"
-                value={formData.subTitle.ru}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    subTitle: { ...prev.subTitle, ru: e.target.value },
-                  }))
-                }
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              ></textarea>
-            </div>
-
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">
-                Title (EN)
-              </label>
-              <input
-                type="text"
-                name="title.en"
-                value={formData.title.en}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    title: { ...prev.title, en: e.target.value },
-                  }))
-                }
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block mb-1 text-sm font-medium">
-                Subtitle (EN)
-              </label>
-              <textarea
-                name="subTitle.en"
-                value={formData.subTitle.en}
-                onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    subTitle: { ...prev.subTitle, en: e.target.value },
-                  }))
-                }
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              ></textarea>
-            </div>
+                <div className="mb-4">
+                  <label className="block mb-1 text-sm font-medium">
+                    Body ({lang.toUpperCase()})
+                  </label>
+                  <textarea
+                    value={formData[lang].body}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        [lang]: { ...prev[lang], body: e.target.value },
+                      }))
+                    }
+                    className="w-full p-2 border border-gray-300 rounded"
+                    required
+                  ></textarea>
+                </div>
+              </div>
+            ))}
 
             <button
               type="submit"
@@ -224,6 +130,20 @@ function News() {
         </div>
       ) : (
         <div className="overflow-x-auto">
+          {/* Выбор языка */}
+          <div className="flex justify-end items-center mb-2">
+            <label className="text-sm font-medium mr-2">Выбрать язык:</label>
+            <select
+              className="border border-gray-300 rounded p-1"
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+            >
+              <option value="en">EN</option>
+              <option value="ru">RU</option>
+              <option value="uz">UZ</option>
+            </select>
+          </div>
+
           <table className="min-w-full bg-white border border-gray-200 shadow-sm">
             <thead className="bg-gray-100">
               <tr>
@@ -231,7 +151,7 @@ function News() {
                   Заголовок
                 </th>
                 <th className="px-6 py-3 text-center text-sm font-medium text-gray-600 border-b">
-                  Подзаголовок
+                  Тело
                 </th>
                 <th className="px-6 py-3 text-center text-sm font-medium text-gray-600 border-b">
                   Действия
@@ -239,13 +159,13 @@ function News() {
               </tr>
             </thead>
             <tbody>
-              {news.map((item, index) => (
-                <tr key={item.id || index} className="hover:bg-gray-50">
+              {news.map((item) => (
+                <tr key={item._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm text-gray-800 border-b">
-                    {item.title}
+                    {item[selectedLanguage]?.title || "Нет данных"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-800 border-b">
-                    {item.subTitle}
+                    {item[selectedLanguage]?.body || "Нет данных"}
                   </td>
                   <td className="px-6 py-4 text-center border-b">
                     <button
@@ -257,7 +177,7 @@ function News() {
                   </td>
                 </tr>
               ))}
-              {news.length == 0 && (
+              {news.length === 0 && (
                 <tr>
                   <td className="text-center py-2 text-sm" colSpan={3}>
                     Больше данных нет

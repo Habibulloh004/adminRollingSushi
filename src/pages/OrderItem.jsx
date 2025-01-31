@@ -12,6 +12,7 @@ const OrderItem = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   // const { socketMe } = useSocketContext();
+  // eslint-disable-next-line no-unused-vars
   const [parsedOrder, setParsedOrder] = useState([]);
   const [checkedItem, setCheckedItem] = useState(null);
   const [orderItem, setOrderItem] = useState(null);
@@ -357,9 +358,10 @@ const OrderItem = () => {
       ? "Доставка"
       : `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`
   }
-    🚚 Доставка: 0
-    📦 Количество заказов: ${clientOrders}
-    ✏️ Комментарий к адресу: ${orderItem.address_comment ?? "Не указан"}
+  🚚 Доставка: 0
+  📦 Количество заказов: ${clientOrders}
+  ✏️ Комментарий: ${orderItem?.comment ?? "Не указан"}
+  ✏️ Комментарий к адресу: ${orderItem?.address_comment ?? "Не указан"}
   
   `.trim();
       // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
