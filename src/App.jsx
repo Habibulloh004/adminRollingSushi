@@ -10,6 +10,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Branches = lazy(() => import("./pages/Branches"));
 const News = lazy(() => import("./pages/News"));
+const CreateOrder = lazy(() => import("./pages/CreateOrder"));
 
 // eslint-disable-next-line react/prop-types
 function PrivateRoute({ children }) {
@@ -72,6 +73,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <News />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="create-order"
+              element={
+                <PrivateRoute>
+                  <CreateOrder />
                 </PrivateRoute>
               }
             />

@@ -36,6 +36,12 @@ const sideBarItems = [
     title: "Рассылка",
     path: "/news",
   },
+  {
+    id: 4,
+    icon: "https://www.nicepng.com/png/full/334-3345112_create-an-inventory-add-property-icon-png.png",
+    title: "Создать заказ",
+    path: "/create-order",
+  },
 ];
 
 const filial = [
