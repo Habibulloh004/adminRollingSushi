@@ -332,7 +332,11 @@ const OrderItem = () => {
       const message = `
   📦 Новый заказ! №${orderItem.id}
   🛒 Название филиал: ${checkedItem.name}
-  📞 Телефон: ${orderItem.phone}
+  📞 Телефон: ${
+    orderItem.phone == "+998771052018"
+      ? extractPhoneNumber(orderItem.comment)
+      : orderItem.phone
+  }
   🏠 Адрес: ${addressName ?? addressName}
   🔗 [Посмотреть на карте](${yandexMapsLink})
   🗺️ Расстояние: ${(
@@ -394,6 +398,11 @@ const OrderItem = () => {
   console.log(orderItem);
   console.log(addressName);
 
+  function extractPhoneNumber(text) {
+    const match = text.match(/\+\d+/);
+    return match ? match[0] : null;
+  }
+
   if (!orderItem || !spots) {
     return (
       <div className="h-[500px] w-full justify-center flex items-center">
@@ -438,7 +447,9 @@ const OrderItem = () => {
         </section>
         <section className="grow shadow-shadowme mt-3 py-6 px-9 space-y-2">
           <p className="text-2xl font-medium">
-            {orderItem?.phone?.length > 11
+            {orderItem?.phone == "+998771052018"
+              ? formatPhoneNumber(extractPhoneNumber(orderItem.comment))
+              : orderItem?.phone?.length > 11
               ? formatPhoneNumber(orderItem.phone)
               : formatPhoneNumber2(orderItem.phone)}
           </p>
