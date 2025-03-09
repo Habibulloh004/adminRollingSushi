@@ -18,6 +18,10 @@ body {
   padding: 0;
 }
 
+.ql-editor {
+  min-height: 200px;
+}
+
 .page-item {
   margin: 0 5px;
 }

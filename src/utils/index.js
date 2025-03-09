@@ -44,6 +44,12 @@ const sideBarItems = [
     title: "Создать заказ",
     path: "/create-order",
   },
+  {
+    id: 5,
+    icon: "https://www.nicepng.com/png/full/326-3269328_advertising-icon-illustration.png",
+    title: "Создать баннер",
+    path: "/create-banner",
+  },
 ];
 
 const filial = [

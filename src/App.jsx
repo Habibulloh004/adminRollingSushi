@@ -4,10 +4,11 @@ import OrderItem from "./pages/OrderItem";
 import { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { useEvent } from "./store/event";
+import CreateBanner from "./pages/CreateBanner";
 // import Login from "./pages/Login";
 // import Orders from "./pages/Orders";
 
-const   Layout = lazy(() => import("./Layout"));
+const Layout = lazy(() => import("./Layout"));
 const Login = lazy(() => import("./pages/Login"));
 const Orders = lazy(() => import("./pages/Orders"));
 const Branches = lazy(() => import("./pages/Branches"));
@@ -110,6 +111,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <CreateOrder />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="create-banner"
+              element={
+                <PrivateRoute>
+                  <CreateBanner />
                 </PrivateRoute>
               }
             />
