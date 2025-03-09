@@ -52,88 +52,67 @@ function CreateBanner() {
     sendData.append("subtitle", formData.subtitle);
     sendData.append("description", formData.description);
 
-    const requestOptions = {
-      method: "POST",
-      body: sendData,
-      redirect: "follow",
-      mode: "no-cors",
-    };
-
-    fetch(`${import.meta.env.VITE_BACK}/banner/add_banner`, requestOptions)
-      .then((response) => response.json())
-      .then((result) => {
-        console.log(result);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACK}/banner/add_banner`,
+        sendData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Server response:", response);
+      if (response?.data && response?.data?.id) {
         setFormData({
-          file: null,
-          lang: "en",
-          path: "/category",
+          file: null, // For banner image
+          lang: "en", // Language for title and description
+          path: "", // Default path, now editable
           title: "",
-          subtitle: "",
-          description: "",
+          subtitle: "news",
+          description: "", // Rich text will be stored as plain text here for simplicity
         });
-        fetchBanners(); // Refresh banners after upload
-        toast.success("Banner successfully uploaded!");
-      })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Something went wrong! Please try again.");
-      });
-
-    // try {
-    //   const response = await axios.post(
-    //     `${import.meta.env.VITE_BACK}/banner/add_banner`,
-    //     JSON.stringify(sendData),
-    //     {
-    //       headers: {
-    //         "Content-Type": "multipart/form-data"
-    //       },
-    //     }
-    //   );
-    //   console.log("Server response:", response.data);
-    //   //   setFormData({
-    //   //     file: null,
-    //   //     lang: "en",
-    //   //     path: "/category",
-    //   //     title: "",
-    //   //     subtitle: "",
-    //   //     description: "",
-    //   //   });
-    //   fetchBanners(); // Refresh banners after upload
-    //   toast.success("Banner successfully uploaded!");
-    // } catch (error) {
-    //   console.error("Error uploading banner:", error);
-    //   toast.error("Something went wrong! Please try again.");
-    // }
+      }
+      fetchBanners(); // Refresh banners after upload
+      toast.success("Banner successfully uploaded!");
+    } catch (error) {
+      console.error("Error uploading banner:", error);
+      toast.error("Something went wrong! Please try again.");
+    }
   };
 
   const handleDelete = async (id) => {
-    const requestOptions = {
-      method: "DELETE",
-      redirect: "follow",
-    };
+    // const requestOptions = {
+    //   method: "DELETE",
+    //   redirect: "follow",
+    // };
 
-    fetch(
-      `${import.meta.env.VITE_API}/banner/delete_banner/${id}`,
-      requestOptions
-    )
-      .then((response) => response.json())
-      .then((result) => {
-        console.log(result);
-        setBanners((prev) => prev.filter((banner) => banner.id !== id)); // Using 'id' instead of '_id' based on your data
-        toast.success("Banner successfully deleted!");
-      })
-      .catch((error) => {
-        console.error(error);
+    // fetch(
+    //   `${import.meta.env.VITE_BACK}/banner/delete_banner/${id}`,
+    //   requestOptions
+    // )
+    //   .then((response) => response.json())
+    //   .then((result) => {
+    //     console.log(result);
+    //     setBanners((prev) => prev.filter((banner) => banner.id !== id)); // Using 'id' instead of '_id' based on your data
+    //     toast.success("Banner successfully deleted!");
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
 
-        toast.error("Something went wrong! Please try again.");
-      });
-    // try {
-    //   // const res = await axios.delete(
-    //   //   `${import.meta.env.VITE_API}/banner/delete_banner/${id}`
-    //   // );
-    // } catch (error) {
-    //   console.error("Error deleting banner:", error);
-    // }
+    //     toast.error("Something went wrong! Please try again.");
+    //   });
+    try {
+      const res = await axios.delete(
+        `${import.meta.env.VITE_BACK}/banner/delete_banner/${id}`
+      );
+      console.log(res);
+      setBanners((prev) => prev.filter((banner) => banner.id !== id)); // Using 'id' instead of '_id' based on your data
+      toast.success("Banner successfully deleted!");
+    } catch (error) {
+      console.error("Error deleting banner:", error);
+      toast.error("Something went wrong! Please try again.");
+    }
   };
 
   useEffect(() => {
