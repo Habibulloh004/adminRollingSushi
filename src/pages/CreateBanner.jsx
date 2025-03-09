@@ -1,21 +1,22 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react"; // Add useRef
 import toast from "react-hot-toast";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 function CreateBanner() {
   const [open, setOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState("en"); // Selected language
+  const [selectedLanguage, setSelectedLanguage] = useState("en");
   const [banners, setBanners] = useState([]);
   const [formData, setFormData] = useState({
-    file: null, // For banner image
-    lang: "en", // Language for title and description
-    path: "", // Default path, now editable
+    file: null,
+    lang: "en",
+    path: "",
     title: "",
     subtitle: "news",
-    description: "", // Rich text will be stored as plain text here for simplicity
+    description: "",
   });
+  const fileInputRef = useRef(null); // Ref for file input
 
   const fetchBanners = async () => {
     try {
@@ -37,8 +38,9 @@ function CreateBanner() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleDescriptionChange = (e) => {
-    setFormData({ ...formData, description: e });
+  const handleDescriptionChange = (value) => {
+    // Change 'e' to 'value' for clarity
+    setFormData({ ...formData, description: value });
   };
 
   const handleSubmit = async (e) => {
@@ -65,16 +67,19 @@ function CreateBanner() {
       console.log("Server response:", response);
       if (response?.data && response?.data?.id) {
         setFormData({
-          file: null, // For banner image
-          lang: "en", // Language for title and description
-          path: "", // Default path, now editable
+          file: null,
+          lang: "en",
+          path: "",
           title: "",
           subtitle: "news",
-          description: "", // Rich text will be stored as plain text here for simplicity
+          description: "",
         });
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""; // Clear file input UI
+        }
+        fetchBanners();
+        toast.success("Banner successfully uploaded!");
       }
-      fetchBanners(); // Refresh banners after upload
-      toast.success("Banner successfully uploaded!");
     } catch (error) {
       console.error("Error uploading banner:", error);
       toast.error("Something went wrong! Please try again.");
@@ -82,32 +87,12 @@ function CreateBanner() {
   };
 
   const handleDelete = async (id) => {
-    // const requestOptions = {
-    //   method: "DELETE",
-    //   redirect: "follow",
-    // };
-
-    // fetch(
-    //   `${import.meta.env.VITE_BACK}/banner/delete_banner/${id}`,
-    //   requestOptions
-    // )
-    //   .then((response) => response.json())
-    //   .then((result) => {
-    //     console.log(result);
-    //     setBanners((prev) => prev.filter((banner) => banner.id !== id)); // Using 'id' instead of '_id' based on your data
-    //     toast.success("Banner successfully deleted!");
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-
-    //     toast.error("Something went wrong! Please try again.");
-    //   });
     try {
       const res = await axios.delete(
         `${import.meta.env.VITE_BACK}/banner/delete_banner/${id}`
       );
       console.log(res);
-      setBanners((prev) => prev.filter((banner) => banner.id !== id)); // Using 'id' instead of '_id' based on your data
+      setBanners((prev) => prev.filter((banner) => banner.id !== id));
       toast.success("Banner successfully deleted!");
     } catch (error) {
       console.error("Error deleting banner:", error);
@@ -154,6 +139,7 @@ function CreateBanner() {
               <input
                 type="file"
                 accept="image/*"
+                ref={fileInputRef} // Add ref here
                 onChange={handleFileChange}
                 className="w-full p-2 border border-gray-300 rounded"
                 required
@@ -224,7 +210,6 @@ function CreateBanner() {
                 onChange={handleDescriptionChange}
                 className="bg-white"
                 theme="snow"
-                defaultValue={formData.description}
               />
             </div>
 
@@ -274,8 +259,7 @@ function CreateBanner() {
             <tbody>
               {banners &&
                 banners.map((banner) => {
-                  if (banner.lang != selectedLanguage) return;
-
+                  if (banner.lang !== selectedLanguage) return null;
                   return (
                     <tr key={banner.id} className="hover:bg-gray-50">
                       <td className="px-2 py-4 text-sm text-gray-800 border-b">
@@ -303,7 +287,7 @@ function CreateBanner() {
                 })}
               {banners.length === 0 && (
                 <tr>
-                  <td className="text-center py-2 text-sm" colSpan={4}>
+                  <td className="text-center py-2 text-sm" colSpan={5}>
                     Баннеров нет
                   </td>
                 </tr>
