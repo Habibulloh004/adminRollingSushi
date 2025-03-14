@@ -215,6 +215,8 @@ const OrderItem = () => {
 
   const submit = async (e) => {
     e.preventDefault();
+    // console.log(orderItem)
+    // return;
     const productsString = orderItem.products.replace(
       /([{,])(\s*)([a-zA-Z0-9_]+?):/g,
       '$1"$3":'
@@ -227,6 +229,8 @@ const OrderItem = () => {
     const sendData = JSON.parse(productsString);
     const deliver = orderItem.type == "delivery" || orderItem.type == "";
     console.log("checked", checkedItem);
+    const orderTypeText = "Тип заказа: Через веб-сайт"
+
     const sendOrderPoster = {
       spot_id: checkedItem?.spot_id,
       products: sendData.map((item) => ({
@@ -246,6 +250,7 @@ const OrderItem = () => {
         order_id: orderItem?.id,
         fcm: orderItem.fcm,
         fcm_lng: orderItem.fcm_lng,
+        order: orderItem.comment.includes(orderTypeText) ? "Тип заказа: Через веб-сайт" : ""
       }),
     };
 
