@@ -123,6 +123,8 @@ const OrderItem = () => {
     }
   }, [clientAdress]);
 
+  const deliver = orderItem?.type == "delivery" || orderItem?.type == "";
+
   const backBtn = () => {
     navigate(-1);
     // socketMe?.emit("stopped_process_order", orderItem?.id)
@@ -215,8 +217,39 @@ const OrderItem = () => {
 
   const submit = async (e) => {
     e.preventDefault();
-    // console.log(orderItem)
-    // return;
+    console.log("first", orderItem)
+
+    // Function to process products with promocode
+    const processProductsWithPromo = (products, promocode) => {
+      if (!promocode || !Array.isArray(promocode)) return products;
+
+      // Use plain object instead of Map
+      const promoCounts = {};
+      promocode.forEach((promo) => {
+        if (promo.involved_products) {
+          promo.involved_products.forEach((prod) => {
+            promoCounts[prod.id] = prod.count;
+          });
+        }
+      });
+
+      const updatedProducts = products
+        .map((product) => {
+          const promoCount = promoCounts[product.product_id];
+          if (promoCount !== undefined) {
+            const newAmount = product.amount - promoCount;
+            return {
+              ...product,
+              amount: newAmount,
+            };
+          }
+          return product;
+        })
+        .filter((product) => product.amount > 0);
+
+      return updatedProducts;
+    };
+
     const productsString = orderItem.products.replace(
       /([{,])(\s*)([a-zA-Z0-9_]+?):/g,
       '$1"$3":'
@@ -227,17 +260,24 @@ const OrderItem = () => {
     let lng = parseFloat(latitudeLongitude[1]);
 
     const sendData = JSON.parse(productsString);
-    const deliver = orderItem.type == "delivery" || orderItem.type == "";
+    const sendDataPromo = orderItem?.promocode
+      ? JSON.parse(orderItem.promocode)
+      : [];
+
+    // Process products with promocode
+    const processedProducts = processProductsWithPromo(sendData, sendDataPromo);
+
+    console.log(sendDataPromo);
     console.log("checked", checkedItem);
-    const orderTypeText = "Тип заказа: Через веб-сайт"
+    const orderTypeText = "Тип заказа: Через веб-сайт";
 
     const sendOrderPoster = {
       spot_id: checkedItem?.spot_id,
-      products: sendData.map((item) => ({
+      products: processedProducts.map((item) => ({
         product_id: +item.product_id,
         count: +item.amount,
       })),
-      // delivery_price: deliver ? 1000000 : 0,
+      delivery_price: deliver ? 1000000 : 0,
       phone: orderItem.phone,
       service_mode: deliver ? 3 : 2,
       client_address: {
@@ -250,15 +290,17 @@ const OrderItem = () => {
         order_id: orderItem?.id,
         fcm: orderItem.fcm,
         fcm_lng: orderItem.fcm_lng,
-        order: orderItem.comment.includes(orderTypeText) ? "Тип заказа: Через веб-сайт" : ""
+        order: orderItem.comment.includes(orderTypeText)
+          ? "Тип заказа: Через веб-сайт"
+          : "",
       }),
+      promotion: sendDataPromo,
     };
 
     console.log("postord", sendOrderPoster);
     console.log("ordItem", orderItem);
     const headers = {
       "Content-Type": "application/json",
-      // Add other headers if necessary
     };
 
     const updateOrderStatus = axios.put(
@@ -278,6 +320,7 @@ const OrderItem = () => {
       JSON.stringify(sendOrderPoster),
       { headers: { "Content-Type": "application/json" } }
     );
+
     const notifyApi = axios.post(`${import.meta.env.VITE_API}/notify`, {
       fcm: orderItem.fcm,
       fcm_lng: orderItem.fcm_lng,
@@ -286,28 +329,6 @@ const OrderItem = () => {
 
     try {
       setLoading(true);
-      // Update order status
-      // const resStatus = await axios.put(
-      //   `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
-      //   JSON.stringify({ status: "accept" }),
-      //   { headers }
-      // );
-
-      // // Update order spot
-      // const resSpot = await axios.put(
-      //   `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
-      //   JSON.stringify({ spot_id: `${+checkedItem.spot_id}` }),
-      //   { headers }
-      // );
-
-      // // Post order to external API
-      // const postPoster = await axios.post(
-      //   `${import.meta.env.VITE_API}/api/posttoposter`,
-      //   JSON.stringify(sendOrderPoster),
-      //   {
-      //     headers: { "Content-Type": "application/json" },
-      //   }
-      // );
 
       const [resStatus, resSpot, postPoster, notify] = await Promise.all([
         updateOrderStatus,
@@ -316,7 +337,6 @@ const OrderItem = () => {
         notifyApi,
       ]);
 
-      // Handle responses
       console.log("Order status updated:", resStatus.data);
       console.log("Order spot updated:", resSpot.data);
       console.log("Order posted to external API:", postPoster.data);
@@ -333,7 +353,7 @@ const OrderItem = () => {
         { latitude: checkedItem.lat, longitude: checkedItem.lng },
         orderAddress
       );
-      // Format Telegram message
+
       const message = `
   📦 Новый заказ! №${orderItem.id}
   🛒 Название филиал: ${checkedItem.name}
@@ -350,7 +370,11 @@ const OrderItem = () => {
       orderAddress
     ) / 1000
   ).toFixed(1)} км
-  💵 Сумма заказа: ${f(orderItem?.all_price / 100)} сум
+  💵 Сумма заказа: ${
+    deliver
+      ? f(orderItem?.all_price / 100 - 10000)
+      : f(orderItem?.all_price / 100)
+  } сум
   💳 Метод оплаты: ${
     orderItem?.payment === "cash"
       ? "Наличные"
@@ -367,15 +391,12 @@ const OrderItem = () => {
       ? "Доставка"
       : `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`
   }
-  🚚 Доставка: 0
+  🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
   📦 Количество заказов: ${clientOrders}
   ✏️ Комментарий: ${orderItem?.comment ?? "Не указан"}
   ✏️ Комментарий к адресу: ${orderItem?.address_comment ?? "Не указан"}
-  
-  `.trim();
-      // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
+      `.trim();
 
-      // Send message to Telegram
       const tgRes = await axios.get(
         `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
           message
@@ -383,12 +404,7 @@ const OrderItem = () => {
       );
 
       console.log(tgRes);
-
       toast.success("Заказ успешно изменен!");
-
-      console.log("poster", postPoster);
-      console.log("st", resStatus);
-      console.log("sp", resSpot);
       navigate("/");
     } catch (e) {
       setLoading(false);
@@ -397,6 +413,198 @@ const OrderItem = () => {
       setLoading(false);
     }
   };
+
+  // const submit = async (e) => {
+  //   e.preventDefault();
+  //   // console.log(orderItem)
+  //   // return;
+  //   const productsString = orderItem.products.replace(
+  //     /([{,])(\s*)([a-zA-Z0-9_]+?):/g,
+  //     '$1"$3":'
+  //   );
+
+  //   let latitudeLongitude = orderItem?.client_address?.split(",");
+  //   let lat = parseFloat(latitudeLongitude[0]);
+  //   let lng = parseFloat(latitudeLongitude[1]);
+
+  //   const sendData = JSON.parse(productsString);
+  //   const sendDataPromo = JSON.parse(orderItem?.promocode);
+  //   console.log(sendDataPromo)
+  //   console.log("checked", checkedItem);
+  //   const orderTypeText = "Тип заказа: Через веб-сайт";
+
+  //   const sendOrderPoster = {
+  //     spot_id: checkedItem?.spot_id,
+  //     products: sendData.map((item) => ({
+  //       product_id: +item.product_id,
+  //       count: +item.amount,
+  //     })),
+  //     delivery_price: deliver ? 1000000 : 0,
+  //     phone: orderItem.phone,
+  //     service_mode: deliver ? 3 : 2,
+  //     client_address: {
+  //       address1: addressName,
+  //       lat: `${lat}`,
+  //       lng: `${lng}`,
+  //       comment: `${orderItem.address_comment}`,
+  //     },
+  //     comment: JSON.stringify({
+  //       order_id: orderItem?.id,
+  //       fcm: orderItem.fcm,
+  //       fcm_lng: orderItem.fcm_lng,
+  //       order: orderItem.comment.includes(orderTypeText)
+  //         ? "Тип заказа: Через веб-сайт"
+  //         : "",
+  //     }),
+  //   };
+
+  //   console.log("postord", sendOrderPoster);
+  //   console.log("ordItem", orderItem);
+  //   const headers = {
+  //     "Content-Type": "application/json",
+  //     // Add other headers if necessary
+  //   };
+
+  //   const updateOrderStatus = axios.put(
+  //     `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
+  //     JSON.stringify({ status: "accept" }),
+  //     { headers }
+  //   );
+
+  //   const updateOrderSpot = axios.put(
+  //     `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
+  //     JSON.stringify({ spot_id: `${+checkedItem.spot_id}` }),
+  //     { headers }
+  //   );
+
+  //   const postToExternalAPI = axios.post(
+  //     `${import.meta.env.VITE_API}/api/posttoposter`,
+  //     JSON.stringify(sendOrderPoster),
+  //     { headers: { "Content-Type": "application/json" } }
+  //   );
+  //   const notifyApi = axios.post(`${import.meta.env.VITE_API}/notify`, {
+  //     fcm: orderItem.fcm,
+  //     fcm_lng: orderItem.fcm_lng,
+  //     status: "accept",
+  //   });
+
+  //   try {
+  //     setLoading(true);
+  //     // Update order status
+  //     // const resStatus = await axios.put(
+  //     //   `${import.meta.env.VITE_BACK}/update_order_status/${+id}`,
+  //     //   JSON.stringify({ status: "accept" }),
+  //     //   { headers }
+  //     // );
+
+  //     // // Update order spot
+  //     // const resSpot = await axios.put(
+  //     //   `${import.meta.env.VITE_BACK}/update_order_spot/${+id}`,
+  //     //   JSON.stringify({ spot_id: `${+checkedItem.spot_id}` }),
+  //     //   { headers }
+  //     // );
+
+  //     // // Post order to external API
+  //     // const postPoster = await axios.post(
+  //     //   `${import.meta.env.VITE_API}/api/posttoposter`,
+  //     //   JSON.stringify(sendOrderPoster),
+  //     //   {
+  //     //     headers: { "Content-Type": "application/json" },
+  //     //   }
+  //     // );
+
+  //     const [resStatus, resSpot, postPoster, notify] = await Promise.all([
+  //       updateOrderStatus,
+  //       updateOrderSpot,
+  //       postToExternalAPI,
+  //       notifyApi,
+  //     ]);
+
+  //     // Handle responses
+  //     console.log("Order status updated:", resStatus.data);
+  //     console.log("Order spot updated:", resSpot.data);
+  //     console.log("Order posted to external API:", postPoster.data);
+  //     console.log("Notify API:", notify.data);
+
+  //     const yandexMapsLink = `https://yandex.com/maps/?pt=${lng},${lat}&z=16&l=map`;
+
+  //     const orderAddress = {
+  //       latitude: lat,
+  //       longitude: lng,
+  //     };
+
+  //     getDistance(
+  //       { latitude: checkedItem.lat, longitude: checkedItem.lng },
+  //       orderAddress
+  //     );
+  //     // Format Telegram message
+  //     const message = `
+  // 📦 Новый заказ! №${orderItem.id}
+  // 🛒 Название филиал: ${checkedItem.name}
+  // 📞 Телефон: ${
+  //   orderItem.phone == "+998771052018"
+  //     ? extractPhoneNumber(orderItem.comment)
+  //     : orderItem.phone
+  // }
+  // 🏠 Адрес: ${addressName ?? addressName}
+  // 🔗 [Посмотреть на карте](${yandexMapsLink})
+  // 🗺️ Расстояние: ${(
+  //   getDistance(
+  //     { latitude: checkedItem.lat, longitude: checkedItem.lng },
+  //     orderAddress
+  //   ) / 1000
+  // ).toFixed(1)} км
+  // 💵 Сумма заказа: ${
+  //   deliver
+  //     ? f(orderItem?.all_price / 100 - 10000)
+  //     : f(orderItem?.all_price / 100)
+  // } сум
+  // 💳 Метод оплаты: ${
+  //   orderItem?.payment === "cash"
+  //     ? "Наличные"
+  //     : orderItem?.payment === "creditCard"
+  //     ? "Карта (Оплачено)"
+  //     : "Карта (Не оплачено)"
+  // }
+  // 🎁 Бонусы: ${f(orderItem?.payed_bonus / 100)} сум
+  // 💵 К оплате: ${f(orderItem?.payed_sum / 100)} сум
+  // 🛍 Тип заказа: ${
+  //   orderItem.type === "delivery"
+  //     ? "Доставка"
+  //     : orderItem.type === ""
+  //     ? "Доставка"
+  //     : `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`
+  // }
+  // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
+  // 📦 Количество заказов: ${clientOrders}
+  // ✏️ Комментарий: ${orderItem?.comment ?? "Не указан"}
+  // ✏️ Комментарий к адресу: ${orderItem?.address_comment ?? "Не указан"}
+
+  // `.trim();
+  //     // 🚚 Доставка: ${deliver ? "10,000 сум" : "Не требуется"}
+
+  //     // Send message to Telegram
+  //     const tgRes = await axios.get(
+  //       `https://api.telegram.org/bot7051935328:AAFJxJAVsRTPxgj3rrHWty1pEUlMkBgg9_o/sendMessage?chat_id=-1002211902296&text=${encodeURIComponent(
+  //         message
+  //       )}`
+  //     );
+
+  //     console.log(tgRes);
+
+  //     toast.success("Заказ успешно изменен!");
+
+  //     console.log("poster", postPoster);
+  //     console.log("st", resStatus);
+  //     console.log("sp", resSpot);
+  //     navigate("/");
+  //   } catch (e) {
+  //     setLoading(false);
+  //     console.log(e);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   console.log("nearspot", nearestSpot);
 
@@ -472,7 +680,10 @@ const OrderItem = () => {
           </ol> */}
           <p className="">
             <span className="text-lg font-semibold">Сумма заказа</span> -{" "}
-            {f(orderItem?.all_price / 100)} сум
+            {deliver
+              ? f(orderItem?.all_price / 100 - 10000)
+              : f(orderItem?.all_price / 100)}{" "}
+            сум
           </p>
           <p className="">
             <span className="text-lg font-semibold">Метод оплата</span> -{" "}
@@ -498,19 +709,19 @@ const OrderItem = () => {
               orderItem.type != "" &&
               `На вынос (${orderItem.type.replace(/^take_away\s*/, "")})`}
           </p>
-          {orderItem.type == "delivery" && (
+          {/* {orderItem.type == "delivery" && (
             <p className="">
               <span className="text-lg font-semibold">Доставка</span> - 0 сум
             </p>
-          )}
-          {/* 
+          )} */}
+
           {orderItem.type == "delivery" && (
             <p className="">
               <span className="text-lg font-semibold">Доставка</span> - 10,000
               сум
             </p>
           )}
-          */}
+
           {/* <span>
             <p>Товары:</p>
             <ol className="list-decimal my-2 mx-2 text-sm font-normal">
